@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Sistema de Convocatorias</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans antialiased">
+@extends('layouts.app')
 
-    <div class="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+@section('title', 'Iniciar Sesión - Sistema de Convocatorias')
+
+@section('content')
+    <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         
         <div class="sm:mx-auto sm:w-full sm:max-w-md text-center mb-6">
             <div class="inline-block bg-rose-950 text-white font-bold text-2xl p-3 rounded-lg shadow-md mb-2">
@@ -23,19 +18,25 @@
                 @csrf
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Correo Electrónico</label>
-                    <input type="email" name="correo" required placeholder="correo@ejemplo.com"
+                    <label for="email" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Correo Electrónico</label>
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username" placeholder="correo@ejemplo.com"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
+                    @error('email')
+                        <p class="mt-1 text-xs text-red-700">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Contraseña</label>
-                    <input type="password" name="password" required placeholder="••••••••"
+                    <label for="password" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Contraseña</label>
+                    <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="••••••••"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                 </div>
 
-                <button type="submit" class="w-full bg-rose-900 hover:bg-rose-800 text-white font-semibold py-2.5 rounded-lg shadow-md transition duration-200 text-sm">
-                    Ingresar al Sistema
+                <button type="submit" class="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-900/15 transition duration-200 hover:-translate-y-0.5 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2">
+                    <svg class="h-5 w-5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-4-4 4-5-4-5m4 5H3" />
+                    </svg>
+                    Ingresar al sistema
                 </button>
             </form>
 
@@ -51,6 +52,4 @@
             <a href="/" class="text-xs text-gray-500 hover:text-gray-800">&larr; Volver a las convocatorias</a>
         </div>
     </div>
-
-</body>
-</html>
+@endsection

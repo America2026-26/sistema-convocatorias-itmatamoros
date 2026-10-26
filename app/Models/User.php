@@ -4,18 +4,52 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
+    public const ROLE_USER = 'usuario';
+
+    public const ROLE_REVIEWER = 'dictaminador';
+
+    public const ROLE_ADMIN = 'admin';
+
+    public const ROLES = [
+        self::ROLE_USER,
+        self::ROLE_REVIEWER,
+        self::ROLE_ADMIN,
+    ];
+
+    public const MANAGED_ROLES = [
+        self::ROLE_USER,
+        self::ROLE_REVIEWER,
+    ];
+
+    public const APPLICANT_TYPES = [
+        'aspirante_docente',
+        'aspirante_no_docente',
+    ];
+
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'nombre',
+        'apellido_paterno',
+        'apellido_materno',
+        'curp',
+        'rfc',
+        'tipo_usuario',
+        'role',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -28,5 +62,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
     }
 }
