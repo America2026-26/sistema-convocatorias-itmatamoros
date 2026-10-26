@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Aspirante - Sistema de Convocatorias</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans antialiased">
+@extends('layouts.app')
 
-    <div class="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+@section('title', 'Registro de Aspirante - Sistema de Convocatorias')
+
+@section('content')
+    <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         
         <div class="sm:mx-auto sm:w-full sm:max-w-md text-center mb-6">
             <div class="inline-block bg-rose-950 text-white font-bold text-2xl p-3 rounded-lg shadow-md mb-2">
@@ -21,62 +16,72 @@
         <div class="bg-white py-8 px-6 shadow-xl rounded-2xl sm:max-w-xl sm:w-full border border-gray-200">
             <form action="{{ route('register.store') }}" method="POST" class="space-y-5">
                 @csrf
+                @if ($errors->any())
+                    <div role="alert" class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+                        <p class="mb-2 font-semibold">Revisa los datos del formulario:</p>
+                        <ul class="list-inside list-disc">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Nombre(s)</label>
-                    <input type="text" name="nombre" required placeholder=""
+                    <label for="nombre" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Nombre(s)</label>
+                    <input id="nombre" type="text" name="nombre" value="{{ old('nombre') }}" maxlength="100" required
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Apellido Paterno</label>
-                        <input type="text" name="apellido_paterno" required placeholder=""
+                        <label for="apellido_paterno" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Apellido Paterno</label>
+                        <input id="apellido_paterno" type="text" name="apellido_paterno" value="{{ old('apellido_paterno') }}" maxlength="100" required
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Apellido Materno</label>
-                        <input type="text" name="apellido_materno" required placeholder=""
+                        <label for="apellido_materno" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Apellido Materno</label>
+                        <input id="apellido_materno" type="text" name="apellido_materno" value="{{ old('apellido_materno') }}" maxlength="100" required
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">CURP</label>
-                        <input type="text" name="curp" maxlength="18" required placeholder="18 caracteres"
+                        <label for="curp" class="block text-xs font-semibold text-gray-700 uppercase mb-1">CURP</label>
+                        <input id="curp" type="text" name="curp" value="{{ old('curp') }}" maxlength="18" minlength="18" required placeholder="18 caracteres"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-rose-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">RFC</label>
-                        <input type="text" name="rfc" maxlength="13" required placeholder="13 caracteres"
+                        <label for="rfc" class="block text-xs font-semibold text-gray-700 uppercase mb-1">RFC</label>
+                        <input id="rfc" type="text" name="rfc" value="{{ old('rfc') }}" maxlength="13" minlength="12" required placeholder="12 o 13 caracteres"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase focus:ring-2 focus:ring-rose-900 focus:outline-none">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Tipo de Perfil</label>
-                    <select name="tipo_usuario" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
+                    <label for="tipo_usuario" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Tipo de Perfil</label>
+                    <select id="tipo_usuario" name="tipo_usuario" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                         <option value="aspirante_docente">Aspirante a Plaza Docente</option>
                         <option value="aspirante_no_docente">Aspirante a Plaza No Docente / Administrativa</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Correo Electrónico</label>
-                    <input type="email" name="correo" required placeholder="correo@ejemplo.com"
+                    <label for="email" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Correo Electrónico</label>
+                    <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email" placeholder="correo@ejemplo.com"
                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Contraseña</label>
-                        <input type="password" name="password" required placeholder="••••••••"
+                        <label for="password" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Contraseña</label>
+                        <input id="password" type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="••••••••"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase mb-1">Confirmar Contraseña</label>
-                        <input type="password" name="password_confirmation" required placeholder="••••••••"
+                        <label for="password_confirmation" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Confirmar Contraseña</label>
+                        <input id="password_confirmation" type="password" name="password_confirmation" required minlength="8" autocomplete="new-password" placeholder="••••••••"
                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
                     </div>
                 </div>
@@ -98,6 +103,4 @@
             <a href="/" class="text-xs text-gray-500 hover:text-gray-800">&larr; Volver al catálogo de convocatorias</a>
         </div>
     </div>
-
-</body>
-</html>
+@endsection

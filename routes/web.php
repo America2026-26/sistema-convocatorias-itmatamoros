@@ -1,88 +1,131 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\ConvocatoriaPublicController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dictaminador\ConvocatoriaController as DictaminadorConvocatoriaController;
+use App\Http\Controllers\Dictaminador\PostulanteController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PostulacionController;
+use App\Http\Controllers\ProfileController;
+use App\Models\Convocatoria;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Validation\Rule;
 
-// 1. Landing Page Pública (Acceso libre a convocatorias vigentes)
-Route::get('/', function () {
-    $convocatorias = [
-        (object)[
-            'id_convocatoria' => 1,
-            'titulo' => 'Convocatoria Docente de Cátedra e Investigación 2026',
-            'tipo_concurso' => 'Público Abierto',
-            'tipo_personal' => 'Docente',
-            'categoria_nivel' => 'Profesor Titular A',
-            'plaza_disponible' => '3 Plazas',
-            'jornada_horario' => 'Tiempo Completo (40 hrs/semana)',
-            'salario' => 24500.00,
-            'fecha_inicio' => '2026-10-01',
-            'fecha_fin' => '2026-11-15',
-            'estatus' => 'Activa',
-            'requisitos_especificos' => 'Título de Maestría o Doctorado en Ingeniería o Área Afín, Cédula Profesional, RFC, CURP.'
+Route::get('/', function (Request $request) {
+    $filters = $request->validate([
+        'tipo_concurso' => ['nullable', Rule::in(['Abierta', 'Cerrada'])],
+        'tipo_personal' => ['nullable', Rule::in(['Docente', 'No docente'])],
+    ]);
+
+    $preferredPersonnelType = $filters['tipo_personal']
+        ?? match ($request->user()?->tipo_usuario) {
+            'aspirante_docente' => 'Docente',
+            'aspirante_no_docente' => 'No docente',
+            default => null,
+        };
+
+    $convocatorias = Convocatoria::query()
+        ->where('estatus', 'Activa')
+        ->whereDate('fecha_inicio', '<=', today())
+        ->whereDate('fecha_fin', '>=', today())
+        ->when(
+            isset($filters['tipo_concurso']),
+            fn ($query) => $query->where('tipo_concurso', $filters['tipo_concurso']),
+        )
+        ->when(
+            isset($filters['tipo_personal']),
+            fn ($query) => $query->where('tipo_personal', $filters['tipo_personal']),
+        )
+        ->when(
+            $preferredPersonnelType !== null,
+            fn ($query) => $query->orderByRaw(
+                'CASE WHEN tipo_personal = ? THEN 0 ELSE 1 END',
+                [$preferredPersonnelType],
+            ),
+        )
+        ->orderBy('fecha_fin')
+        ->orderByDesc('id')
+        ->paginate(10)
+        ->withQueryString();
+
+    return view('welcome', [
+        'convocatorias' => $convocatorias,
+        'filters' => [
+            'tipo_concurso' => $filters['tipo_concurso'] ?? '',
+            'tipo_personal' => $filters['tipo_personal'] ?? '',
         ],
-        (object)[
-            'id_convocatoria' => 2,
-            'titulo' => 'Convocatoria de Personal No Docente / Administrativo',
-            'tipo_concurso' => 'Interno / Abierto',
-            'tipo_personal' => 'No Docente',
-            'categoria_nivel' => 'Técnico Administrativo C',
-            'plaza_disponible' => '1 Plaza',
-            'jornada_horario' => 'Medio Tiempo (20 hrs/semana)',
-            'salario' => 12800.00,
-            'fecha_inicio' => '2026-10-10',
-            'fecha_fin' => '2026-10-30',
-            'estatus' => 'Activa',
-            'requisitos_especificos' => 'Título o Cédula Técnica en Sistemas/Computación, Experiencia mínima de 1 año.'
-        ]
-    ];
+    ]);
+})->name('home');
+Route::get('/convocatorias/{convocatoria}', [ConvocatoriaPublicController::class, 'show'])
+    ->name('convocatorias.show');
 
-    return view('welcome', compact('convocatorias'));
+Route::get('/login', [AuthenticatedSessionController::class, 'create'])
+    ->middleware('guest')
+    ->name('login');
+
+Route::get('/registro', [RegisteredUserController::class, 'create'])
+    ->middleware('guest')
+    ->name('register');
+
+Route::post('/login', [AuthenticatedSessionController::class, 'store'])
+    ->middleware(['guest', 'throttle:5,1'])
+    ->name('login.store');
+
+Route::post('/registro', [RegisteredUserController::class, 'store'])
+    ->middleware('guest')
+    ->name('register.store');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    Route::get('/notificaciones', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notificaciones/{notificationId}', [NotificationController::class, 'show'])
+        ->name('notifications.show');
+    Route::post('/notificaciones/leer-todas', [NotificationController::class, 'markAllRead'])
+        ->name('notifications.read-all');
+    Route::get('/mi-perfil', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/mi-perfil/foto', [ProfileController::class, 'photo'])->name('profile.photo');
+    Route::post('/mi-perfil/foto', [ProfileController::class, 'updatePhoto'])->name('profile.photo.update');
+    Route::delete('/mi-perfil/foto', [ProfileController::class, 'destroyPhoto'])->name('profile.photo.destroy');
+    Route::get('/configuracion', [ProfileController::class, 'settings'])->name('profile.settings');
+
+    Route::middleware('role:'.User::ROLE_USER)->group(function () {
+        Route::get('/mis-postulaciones', [PostulacionController::class, 'index'])
+            ->name('postulaciones.index');
+        Route::get('/mis-postulaciones/{postulacion}', [PostulacionController::class, 'show'])
+            ->name('postulaciones.show');
+        Route::get('/mis-postulaciones/{postulacion}/documento', [PostulacionController::class, 'document'])
+            ->name('postulaciones.documento');
+        Route::post('/convocatorias/{convocatoria}/postular', [PostulacionController::class, 'store'])
+            ->name('postulaciones.store');
+    });
+
+    Route::prefix('admin')->name('admin.')->middleware('role:'.User::ROLE_ADMIN)->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+        Route::resource('users', AdminUserController::class)->except('show');
+        Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    });
+
+    Route::prefix('dictaminador')->name('dictaminador.')
+        ->middleware('role:'.User::ROLE_REVIEWER)
+        ->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+            Route::resource('convocatorias', DictaminadorConvocatoriaController::class)
+                ->except('show');
+            Route::get('/postulantes', [PostulanteController::class, 'index'])
+                ->name('postulantes.index');
+            Route::get('/postulantes/{postulacion}', [PostulanteController::class, 'show'])
+                ->name('postulantes.show');
+            Route::patch('/postulantes/{postulacion}/dictamen', [PostulanteController::class, 'review'])
+                ->name('postulantes.review');
+            Route::get('/postulantes/{postulacion}/documento', [PostulanteController::class, 'document'])
+                ->middleware('role:'.User::ROLE_REVIEWER.','.User::ROLE_ADMIN)
+                ->name('postulantes.document');
+        });
 });
-
-// 2. Pantalla de Iniciar Sesión (GET)
-Route::get('/login', function () {
-    // Si ya inició sesión previamente, lo mandamos directo al dashboard
-    if (session()->has('usuario_autenticado')) {
-        return redirect()->route('dashboard');
-    }
-    return view('auth.login');
-})->name('login');
-
-// 3. Pantalla de Registro (GET)
-Route::get('/registro', function () {
-    if (session()->has('usuario_autenticado')) {
-        return redirect()->route('dashboard');
-    }
-    return view('auth.register');
-})->name('register');
-
-// 4. Procesar Inicio de Sesión (POST)
-Route::post('/login', function (Request $request) {
-    // Registramos la sesión activa del usuario
-    session(['usuario_autenticado' => true]);
-    return redirect()->route('dashboard');
-})->name('login.store');
-
-// 5. Procesar Registro (POST)
-Route::post('/registro', function (Request $request) {
-    // Guardamos la sesión activa tras el registro
-    session(['usuario_autenticado' => true]);
-    return redirect()->route('dashboard');
-})->name('register.store');
-
-// 6. Panel Privado / Dashboard (Ruta Protegida)
-Route::get('/dashboard', function () {
-    // Verificamos si NO ha iniciado sesión
-    if (!session()->has('usuario_autenticado')) {
-        // Redirige al login bloqueando la vista protegida
-        return redirect()->route('login')->with('error', 'Debes iniciar sesión para acceder al panel.');
-    }
-
-    return view('dashboard');
-})->name('dashboard');
-
-// 7. Cerrar Sesión (Destruye la sesión y redirige al inicio)
-Route::get('/logout', function () {
-    session()->forget('usuario_autenticado');
-    return redirect()->route('login');
-})->name('logout');

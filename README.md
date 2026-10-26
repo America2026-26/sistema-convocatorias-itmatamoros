@@ -21,6 +21,36 @@ Laravel is a web application framework with expressive, elegant syntax. We belie
 
 Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
+## SQL Server and account management
+
+Set the following values in the local `.env` file for the SQL Server instance; do not commit database credentials:
+
+```dotenv
+DB_CONNECTION=sqlsrv
+DB_HOST=127.0.0.1
+DB_PORT=1433
+DB_DATABASE=sistema_convocatorias
+DB_USERNAME=your_sql_server_user
+DB_PASSWORD=your_sql_server_password
+DB_ENCRYPT=true
+DB_TRUST_SERVER_CERTIFICATE=false
+```
+
+PHP must have the `sqlsrv` and `pdo_sqlsrv` extensions and the Microsoft SQL Server ODBC driver installed. Create the database first, then run `php artisan migrate`.
+For a local development server using a self-signed certificate only, `DB_TRUST_SERVER_CERTIFICATE=true` allows the encrypted connection without validating that certificate. Keep it `false` in production and configure a certificate trusted by the host instead.
+
+Public registration always creates a `usuario`; administrator-created accounts may be `usuario`, `dictaminador`, or `admin`. Create the first administrator from the terminal with `php artisan app:create-admin-user`. Admin-only account management and the access/change history are available from the navigation menu. Successful logins and account creation, updates, and deletions are timestamped in `audit_logs`; passwords are never included in that history.
+
+## Role workspaces
+
+- `/admin/dashboard`: live counts, account management, and paginated audit history.
+- `/dictaminador/dashboard`: live counts, new and expiring calls, and links to the review workspace.
+- Dictaminadores can create, edit, close, and delete calls without applications. Calls with submitted applications cannot be deleted; close them instead to preserve records.
+- `/dictaminador/postulantes`: applications grouped by call, with private PDF access and approve/reject review actions.
+- Applicants can submit their profile information and an optional PDF from an open call. Application decisions appear in the in-app notification inbox; the bell shows unread counts for applicants and reviewers.
+
+Application documents are saved on Laravel's private `local` disk and are only available to the owner and reviewers through authenticated routes.
+
 ## Learning Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.

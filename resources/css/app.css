@@ -7,3 +7,71 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+.navbar-logo {
+    filter: grayscale(1) invert(1);
+    mix-blend-mode: screen;
+}
+
+html[data-theme='dark'] {
+    color-scheme: dark;
+    --color-gray-50: #1b222d;
+    --color-gray-100: #252e3b;
+    --color-gray-200: #344052;
+    --color-gray-300: #465468;
+    --color-gray-400: #718096;
+    --color-gray-500: #9aa7ba;
+    --color-gray-600: #b2bdcc;
+    --color-gray-700: #cbd4df;
+    --color-gray-800: #e0e6ee;
+    --color-gray-900: #edf1f6;
+    --color-rose-50: #202b3b;
+    --color-rose-100: #29394f;
+    --color-rose-200: #3a4e69;
+    --color-rose-700: #344a65;
+    --color-rose-800: #2a3d58;
+    --color-rose-900: #22334b;
+    --color-rose-950: #19263a;
+    --color-indigo-100: #29394f;
+    --color-indigo-400: #9bb7e5;
+    --color-indigo-500: #6688c4;
+    --color-indigo-600: #5578b5;
+    --color-indigo-700: #c8d9f4;
+    --color-slate-300: #cbd4df;
+    --color-slate-600: #465468;
+    --color-slate-700: #344052;
+    --color-slate-800: #202a38;
+    --color-slate-900: #151d29;
+    --color-red-50: #3b262b;
+    --color-red-500: #ed777d;
+    --color-red-600: #e66b72;
+    --color-red-700: #f2a0a4;
+    --color-red-800: #f4b6b9;
+    --color-red-900: #273852;
+    --color-emerald-50: #1d352f;
+    --color-emerald-100: #27483e;
+    --color-emerald-500: #48a88b;
+    --color-emerald-600: #3e987c;
+    --color-emerald-700: #8fd2b9;
+    --color-emerald-800: #b0e1ce;
+    --color-amber-100: #433a27;
+    --color-amber-700: #e8c778;
+    --color-amber-800: #f0d797;
+}
+
+html[data-theme='dark'] .text-rose-100,
+html[data-theme='dark'] .text-rose-200,
+html[data-theme='dark'] .text-rose-700,
+html[data-theme='dark'] .text-rose-800,
+html[data-theme='dark'] .text-rose-900,
+html[data-theme='dark'] .text-rose-950 {
+    color: #dbe6f5;
+}
+
+html[data-theme='dark'] .bg-white {
+    background-color: #252d39;
+}
+
+html[data-theme='dark'] .text-white {
+    color: #e8edf4;
+}
