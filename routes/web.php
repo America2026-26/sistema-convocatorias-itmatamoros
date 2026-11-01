@@ -16,6 +16,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
+use App\Http\Controllers\ExpedienteController;
+use App\Http\Controllers\CalendarioController;
 
 Route::get('/', function (Request $request) {
     $filters = $request->validate([
@@ -128,4 +130,9 @@ Route::middleware('auth')->group(function () {
                 ->middleware('role:'.User::ROLE_REVIEWER.','.User::ROLE_ADMIN)
                 ->name('postulantes.document');
         });
+
+        Route::middleware(['auth'])->group(function () {
+        Route::get('/mi-expediente/estado', [ExpedienteController::class, 'estado'])->name('expediente.estado');
+        Route::get('/calendario-institucional', [CalendarioController::class, 'index'])->name('calendario.institucional');
+});
 });
