@@ -28,7 +28,7 @@
         </div>
 
         <div class="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white px-5 py-7 shadow-lg sm:px-8 sm:py-8">
-            <form action="{{ route('register.store') }}" method="POST" class="space-y-5" data-registration-form>
+            <form action="{{ route('register.store') }}" method="POST" class="space-y-5" data-account-form>
                 @csrf
                 @if ($errors->any())
                     <div role="alert" class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
@@ -103,15 +103,29 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
+                    <div data-password-field>
                         <label for="password" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Contraseña</label>
-                        <input id="password" type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="••••••••"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
+                        <div class="relative">
+                            <input id="password" type="password" name="password" required minlength="8" autocomplete="new-password" placeholder="••••••••"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-rose-900">
+                            <button type="button" data-password-toggle data-password-label="contraseña"
+                                aria-controls="password" aria-label="Mostrar contraseña" aria-pressed="false"
+                                class="absolute inset-y-0 right-0 inline-flex items-center rounded-r-lg px-3 text-xs font-semibold text-rose-900 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-rose-700">
+                                <span data-password-toggle-label>Mostrar</span>
+                            </button>
+                        </div>
                     </div>
-                    <div>
+                    <div data-password-field>
                         <label for="password_confirmation" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Confirmar Contraseña</label>
-                        <input id="password_confirmation" type="password" name="password_confirmation" required minlength="8" autocomplete="new-password" placeholder="••••••••"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
+                        <div class="relative">
+                            <input id="password_confirmation" type="password" name="password_confirmation" required minlength="8" autocomplete="new-password" placeholder="••••••••"
+                                   class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-rose-900">
+                            <button type="button" data-password-toggle data-password-label="confirmación de contraseña"
+                                aria-controls="password_confirmation" aria-label="Mostrar confirmación de contraseña" aria-pressed="false"
+                                class="absolute inset-y-0 right-0 inline-flex items-center rounded-r-lg px-3 text-xs font-semibold text-rose-900 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-rose-700">
+                                <span data-password-toggle-label>Mostrar</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

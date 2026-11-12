@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Convocatoria;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -156,16 +157,36 @@ class AdminUserController extends Controller
             'rfc' => filled($request->input('rfc')) ? Str::upper((string) $request->input('rfc')) : null,
         ]);
 
-        return $request->validate([
+        $data = $request->validate([
             'nombre' => ['required', 'string', 'max:100'],
-            'apellido_paterno' => ['nullable', 'string', 'max:100'],
-            'apellido_materno' => ['nullable', 'string', 'max:100'],
-            'curp' => ['nullable', 'alpha_num', 'size:18', Rule::unique('users', 'curp')->ignore($user?->id)],
-            'rfc' => ['nullable', 'alpha_num', 'min:12', 'max:13', Rule::unique('users', 'rfc')->ignore($user?->id)],
+            'apellido_paterno' => ['required', 'string', 'max:100'],
+            'apellido_materno' => ['required', 'string', 'max:100'],
+            'curp' => [
+                'exclude_unless:role,'.User::ROLE_USER,
+                'required',
+                'alpha_num',
+                'size:18',
+                Rule::unique('users', 'curp')->ignore($user?->id),
+            ],
+            'rfc' => [
+                'exclude_unless:role,'.User::ROLE_USER,
+                'required',
+                'alpha_num',
+                'min:12',
+                'max:13',
+                Rule::unique('users', 'rfc')->ignore($user?->id),
+            ],
             'tipo_usuario' => [
-                Rule::requiredIf($request->input('role') === User::ROLE_USER),
-                'nullable',
+                'exclude_unless:role,'.User::ROLE_USER,
+                'required',
                 Rule::in(User::APPLICANT_TYPES),
+            ],
+            'plaza_jornada' => [
+                'exclude_unless:role,'.User::ROLE_USER,
+                'exclude_unless:tipo_usuario,aspirante_docente',
+                'required',
+                'string',
+                Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS)),
             ],
             'email' => [
                 'required',
@@ -179,6 +200,12 @@ class AdminUserController extends Controller
             ],
             'password' => [$user ? 'nullable' : 'required', 'string', 'min:8', 'confirmed'],
         ]);
+
+        if ($data['role'] === User::ROLE_USER && $data['tipo_usuario'] === 'aspirante_no_docente') {
+            $data['plaza_jornada'] = null;
+        }
+
+        return $data;
     }
 
     /**
@@ -207,6 +234,7 @@ class AdminUserController extends Controller
             'curp',
             'rfc',
             'tipo_usuario',
+            'plaza_jornada',
             'role',
         ]);
     }

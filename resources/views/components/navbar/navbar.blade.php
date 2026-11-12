@@ -1,4 +1,4 @@
-<header class="sticky top-0 z-50 bg-slate-900 text-white shadow-lg">
+<header class="sticky top-0 z-50 brand-surface shadow-lg">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <a href="{{ url('/') }}" class="flex min-w-0 items-center gap-3">
             <img src="https://dev.matamoros.tecnm.mx/tecnm_itm/sitio/drive/logo-del-tec-guindo-289x300.png"
@@ -6,7 +6,7 @@
                 class="h-11 w-auto shrink-0 object-contain sm:h-14">
             <span class="min-w-0">
                 <span class="block text-sm font-bold leading-tight sm:text-base">Sistema de Convocatorias</span>
-                <span class="hidden text-xs text-slate-300 sm:block">Instituto Tecnológico de Matamoros</span>
+                <span class="hidden text-xs text-white/80 sm:block">Instituto Tecnológico de Matamoros</span>
             </span>
         </a>
 
@@ -14,23 +14,23 @@
             @auth
                 <nav aria-label="Navegación principal" class="hidden items-center gap-1 md:flex">
                     <a href="{{ route('dashboard') }}"
-                        class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Panel</a>
+                        class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Panel</a>
                     @if (auth()->user()->isAdmin())
                         <a href="{{ route('admin.users.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Cuentas</a>
+                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Cuentas</a>
                         <a href="{{ route('admin.audit-logs.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Historial</a>
+                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Historial</a>
                     @elseif (auth()->user()->role === \App\Models\User::ROLE_REVIEWER)
                         <a href="{{ route('dictaminador.convocatorias.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Convocatorias</a>
+                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Convocatorias</a>
                         <a href="{{ route('dictaminador.postulantes.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Postulantes</a>
+                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Postulantes</a>
                     @else
                         <a href="{{ route('home') }}#convocatorias"
                             data-applicant-convocatorias-link
-                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Convocatorias</a>
+                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Convocatorias</a>
                         <a href="{{ route('postulaciones.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Mis postulaciones</a>
+                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Mis postulaciones</a>
                     @endif
                 </nav>
             @endauth
@@ -39,7 +39,7 @@
                 <div class="relative" data-notifications-menu>
                     <button type="button" data-notifications-toggle aria-controls="notifications-dropdown"
                         aria-expanded="false" aria-label="Notificaciones, {{ $unreadNotificationsCount }} nuevas"
-                        class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        class="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                 d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />
@@ -103,7 +103,7 @@
                 <div class="relative" data-profile-menu>
                     <button type="button" data-profile-toggle aria-controls="profile-menu" aria-expanded="false"
                         aria-label="Abrir menú del perfil"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-600 bg-slate-800 text-slate-100 transition hover:border-slate-400 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:border-white/50 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-300">
                         @if (auth()->user()->profile_photo_path)
                             <img src="{{ route('profile.photo', ['v' => auth()->user()->profile_photo_path]) }}" alt=""
                                 class="h-full w-full rounded-full object-cover">
@@ -209,12 +209,12 @@
             && auth()->user()->tipo_usuario === 'aspirante_docente'
             && filled(auth()->user()->plaza_jornada)
         )
-            <div class="border-t border-slate-800 bg-slate-950/30">
+            <div class="border-t border-white/15 bg-black/10">
                 <div class="mx-auto flex max-w-7xl items-center justify-end gap-2 px-4 py-2 sm:px-6 lg:px-8">
-                    <span class="max-w-[55vw] truncate text-xs text-slate-200 sm:max-w-none">
+                    <span class="max-w-[55vw] truncate text-xs text-white/80 sm:max-w-none">
                         {{ auth()->user()->name }}
                     </span>
-                    <span class="shrink-0 rounded-full bg-rose-900 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <span class="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white">
                         Plaza {{ auth()->user()->plaza_jornada }}
                     </span>
                 </div>
@@ -224,25 +224,25 @@
 
     @auth
         <nav id="mobile-navigation" data-navbar-menu aria-label="Navegación móvil"
-            class="hidden border-t border-slate-800 px-4 pb-4 pt-2 md:hidden">
+            class="hidden border-t border-white/15 px-4 pb-4 pt-2 md:hidden">
             <a href="{{ route('dashboard') }}"
-                class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Mi panel</a>
+                class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Mi panel</a>
             @if (auth()->user()->isAdmin())
                 <a href="{{ route('admin.users.index') }}"
-                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Cuentas</a>
+                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Cuentas</a>
                 <a href="{{ route('admin.audit-logs.index') }}"
-                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Historial</a>
+                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Historial</a>
             @elseif (auth()->user()->role === \App\Models\User::ROLE_REVIEWER)
                 <a href="{{ route('dictaminador.convocatorias.index') }}"
-                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Convocatorias</a>
+                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Convocatorias</a>
                 <a href="{{ route('dictaminador.postulantes.index') }}"
-                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Postulantes</a>
+                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Postulantes</a>
             @else
                 <a href="{{ route('home') }}#convocatorias"
                     data-applicant-convocatorias-link
-                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Convocatorias</a>
+                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Convocatorias</a>
                 <a href="{{ route('postulaciones.index') }}"
-                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Mis postulaciones</a>
+                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Mis postulaciones</a>
             @endif
         </nav>
     @endauth

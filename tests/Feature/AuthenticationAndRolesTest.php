@@ -21,6 +21,33 @@ class AuthenticationAndRolesTest extends TestCase
             ->assertSee('E3817');
     }
 
+    public function test_password_visibility_controls_are_available_on_all_account_forms(): void
+    {
+        $this->get(route('login'))
+            ->assertOk()
+            ->assertSee('data-password-toggle', false)
+            ->assertSee('aria-controls="password"', false);
+
+        $this->get(route('register'))
+            ->assertOk()
+            ->assertSee('aria-controls="password"', false)
+            ->assertSee('aria-controls="password_confirmation"', false);
+
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $account = User::factory()->create(['role' => User::ROLE_REVIEWER]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.users.create'))
+            ->assertOk()
+            ->assertSee('aria-controls="password"', false)
+            ->assertSee('aria-controls="password_confirmation"', false);
+
+        $this->get(route('admin.users.edit', $account))
+            ->assertOk()
+            ->assertSee('aria-controls="password"', false)
+            ->assertSee('aria-controls="password_confirmation"', false);
+    }
+
     public function test_registration_persists_profile_and_assigns_only_the_user_role(): void
     {
         $response = $this->post('/registro', [
@@ -190,6 +217,10 @@ class AuthenticationAndRolesTest extends TestCase
             'nombre' => 'Carlos',
             'apellido_paterno' => 'García',
             'apellido_materno' => 'Pérez',
+            'curp' => 'ABCD001231HDFXXX01',
+            'rfc' => 'ABCD001231XYZ',
+            'tipo_usuario' => 'aspirante_docente',
+            'plaza_jornada' => 'E3817',
             'email' => 'carlos@example.com',
             'role' => User::ROLE_REVIEWER,
             'password' => 'password-seguro',
@@ -197,21 +228,31 @@ class AuthenticationAndRolesTest extends TestCase
         ])->assertRedirect(route('admin.users.index'));
 
         $account = User::query()->where('email', 'carlos@example.com')->firstOrFail();
+        $this->assertNull($account->curp);
+        $this->assertNull($account->rfc);
+        $this->assertNull($account->tipo_usuario);
+        $this->assertNull($account->plaza_jornada);
 
         $this->put(route('admin.users.update', $account), [
             'nombre' => 'Carlos',
             'apellido_paterno' => 'Pérez',
-            'apellido_materno' => '',
+            'apellido_materno' => 'García',
+            'curp' => 'CARL850101HDFXXX01',
+            'rfc' => 'CARL850101XYZ',
             'email' => 'carlos.perez@example.com',
             'role' => User::ROLE_USER,
             'tipo_usuario' => 'aspirante_docente',
+            'plaza_jornada' => 'E3817',
             'password' => '',
             'password_confirmation' => '',
         ])->assertRedirect(route('admin.users.index'));
 
         $account->refresh();
-        $this->assertSame('Carlos Pérez', $account->name);
+        $this->assertSame('Carlos Pérez García', $account->name);
         $this->assertSame(User::ROLE_USER, $account->role);
+        $this->assertSame('CARL850101HDFXXX01', $account->curp);
+        $this->assertSame('CARL850101XYZ', $account->rfc);
+        $this->assertSame('E3817', $account->plaza_jornada);
 
         $this->delete(route('admin.users.destroy', $account))
             ->assertRedirect(route('admin.users.index'));
@@ -221,11 +262,12 @@ class AuthenticationAndRolesTest extends TestCase
         $updated = AuditLog::query()->where('event', 'user.updated')->firstOrFail();
         $this->assertSame($account->id, data_get($created->details, 'user.id'));
         $this->assertSame($account->id, data_get($updated->details, 'user.id'));
+        $this->assertSame('E3817', data_get($updated->details, 'after.plaza_jornada'));
         $this->assertSame($account->id, $created->user_id);
         $this->assertSame($account->id, $updated->user_id);
 
         $deletion = AuditLog::query()->where('event', 'user.deleted')->firstOrFail();
-        $this->assertSame('Carlos Pérez', data_get($deletion->details, 'user.name'));
+        $this->assertSame('Carlos Pérez García', data_get($deletion->details, 'user.name'));
         $this->assertArrayNotHasKey('password', $deletion->details);
     }
 
@@ -236,8 +278,104 @@ class AuthenticationAndRolesTest extends TestCase
         $this->actingAs($admin)
             ->get(route('admin.users.create'))
             ->assertOk()
+            ->assertSee('data-account-form', false)
+            ->assertSee('data-account-role', false)
             ->assertSee('Nombre(s)')
+            ->assertSee('Apellido Paterno')
+            ->assertSee('Apellido Materno')
+            ->assertSee('CURP')
+            ->assertSee('RFC')
+            ->assertSee('Tipo de Perfil')
+            ->assertSee('Plaza de Jornada')
+            ->assertSee('Selecciona una plaza docente')
             ->assertDontSee('Nombre completo');
+    }
+
+    public function test_admin_requires_and_updates_the_teaching_jornada_for_applicant_accounts(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $applicantData = [
+            'nombre' => 'Ana',
+            'apellido_paterno' => 'López',
+            'apellido_materno' => 'Ruiz',
+            'curp' => 'ABCD001231HDFXXX01',
+            'rfc' => 'ABCD001231XYZ',
+            'tipo_usuario' => 'aspirante_docente',
+            'email' => 'ana@example.com',
+            'role' => User::ROLE_USER,
+            'password' => 'password-seguro',
+            'password_confirmation' => 'password-seguro',
+        ];
+        $incompleteApplicantData = $applicantData;
+        unset($incompleteApplicantData['curp'], $incompleteApplicantData['rfc']);
+
+        $this->actingAs($admin)
+            ->from(route('admin.users.create'))
+            ->post(route('admin.users.store'), $incompleteApplicantData)
+            ->assertRedirect(route('admin.users.create'))
+            ->assertSessionHasErrors(['curp', 'rfc', 'plaza_jornada']);
+
+        $this->from(route('admin.users.create'))
+            ->post(route('admin.users.store'), $applicantData)
+            ->assertRedirect(route('admin.users.create'))
+            ->assertSessionHasErrors('plaza_jornada');
+
+        $applicantData['plaza_jornada'] = 'E9999';
+
+        $this->from(route('admin.users.create'))
+            ->post(route('admin.users.store'), $applicantData)
+            ->assertRedirect(route('admin.users.create'))
+            ->assertSessionHasErrors('plaza_jornada');
+
+        $this->assertDatabaseMissing('users', ['email' => 'ana@example.com']);
+
+        $applicantData['plaza_jornada'] = 'E3817';
+
+        $this->post(route('admin.users.store'), $applicantData)
+            ->assertRedirect(route('admin.users.index'));
+
+        $applicant = User::query()->where('email', 'ana@example.com')->firstOrFail();
+        $this->assertSame(User::ROLE_USER, $applicant->role);
+        $this->assertSame('aspirante_docente', $applicant->tipo_usuario);
+        $this->assertSame('E3817', $applicant->plaza_jornada);
+
+        $this->get(route('admin.users.edit', $applicant))
+            ->assertOk()
+            ->assertSee('Plaza de Jornada')
+            ->assertSee('value="E3817" selected', false);
+
+        $this->put(route('admin.users.update', $applicant), [
+            ...$applicantData,
+            'tipo_usuario' => 'aspirante_no_docente',
+            'plaza_jornada' => 'E3817',
+            'password' => '',
+            'password_confirmation' => '',
+        ])->assertRedirect(route('admin.users.index'));
+
+        $applicant->refresh();
+        $this->assertSame('aspirante_no_docente', $applicant->tipo_usuario);
+        $this->assertNull($applicant->plaza_jornada);
+
+        $teachingApplicantData = [
+            ...$applicantData,
+            'tipo_usuario' => 'aspirante_docente',
+            'password' => '',
+            'password_confirmation' => '',
+        ];
+        unset($teachingApplicantData['plaza_jornada']);
+
+        $this->from(route('admin.users.edit', $applicant))
+            ->put(route('admin.users.update', $applicant), $teachingApplicantData)
+            ->assertRedirect(route('admin.users.edit', $applicant))
+            ->assertSessionHasErrors('plaza_jornada');
+
+        $teachingApplicantData['plaza_jornada'] = 'E3815';
+
+        $this->put(route('admin.users.update', $applicant), $teachingApplicantData)
+            ->assertRedirect(route('admin.users.index'));
+
+        $this->assertSame('aspirante_docente', $applicant->refresh()->tipo_usuario);
+        $this->assertSame('E3815', $applicant->plaza_jornada);
     }
 
     public function test_admin_creates_account_name_from_given_and_surnames(): void
@@ -276,9 +414,12 @@ class AuthenticationAndRolesTest extends TestCase
             'nombre' => $admin->nombre,
             'apellido_paterno' => $admin->apellido_paterno,
             'apellido_materno' => $admin->apellido_materno,
+            'curp' => 'ABCD001231HDFXXX01',
+            'rfc' => 'ABCD001231XYZ',
             'email' => $admin->email,
             'role' => User::ROLE_USER,
             'tipo_usuario' => 'aspirante_docente',
+            'plaza_jornada' => 'E3817',
             'password' => '',
             'password_confirmation' => '',
         ])->assertSessionHasErrors('role');

@@ -124,30 +124,73 @@ if (themeToggle) {
     });
 }
 
-const registrationForm = document.querySelector('[data-registration-form]');
+document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
+    const inputId = toggle.getAttribute('aria-controls');
+    const passwordInput = inputId ? document.getElementById(inputId) : null;
+    const toggleLabel = toggle.querySelector('[data-password-toggle-label]');
+    const passwordLabel = toggle.getAttribute('data-password-label');
 
-if (registrationForm) {
-    const applicantType = registrationForm.querySelector('[data-applicant-type]');
-    const positionField = registrationForm.querySelector('[data-teaching-position-field]');
-    const positionSelect = registrationForm.querySelector('[name="plaza_jornada"]');
+    if (
+        !(passwordInput instanceof HTMLInputElement)
+        || !(toggleLabel instanceof HTMLElement)
+        || !passwordLabel
+    ) {
+        return;
+    }
+
+    toggle.addEventListener('click', () => {
+        const isVisible = passwordInput.type === 'text';
+        passwordInput.type = isVisible ? 'password' : 'text';
+        toggleLabel.textContent = isVisible ? 'Mostrar' : 'Ocultar';
+        toggle.setAttribute('aria-label', `${isVisible ? 'Mostrar' : 'Ocultar'} ${passwordLabel}`);
+        toggle.setAttribute('aria-pressed', String(!isVisible));
+    });
+});
+
+document.querySelectorAll('[data-account-form]').forEach((accountForm) => {
+    const roleSelect = accountForm.querySelector('[data-account-role]');
+    const applicantFields = accountForm.querySelector('[data-applicant-fields]');
+    const applicantType = accountForm.querySelector('[data-applicant-type]');
+    const positionField = accountForm.querySelector('[data-teaching-position-field]');
+    const positionSelect = accountForm.querySelector('[name="plaza_jornada"]');
 
     if (
         applicantType instanceof HTMLSelectElement
         && positionField instanceof HTMLElement
         && positionSelect instanceof HTMLSelectElement
     ) {
-        const updatePositionField = () => {
-            const isTeachingApplicant = applicantType.value === 'aspirante_docente';
+        const updateAccountFields = () => {
+            const isApplicant = !(roleSelect instanceof HTMLSelectElement)
+                || roleSelect.value === 'usuario';
+            const isTeachingApplicant = isApplicant && applicantType.value === 'aspirante_docente';
+
+            if (applicantFields instanceof HTMLElement) {
+                applicantFields.hidden = !isApplicant;
+                applicantFields.querySelectorAll('input, select').forEach((field) => {
+                    if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement) {
+                        field.disabled = !isApplicant;
+
+                        if (field.hasAttribute('data-required-for-applicant')) {
+                            field.required = isApplicant;
+                        }
+                    }
+                });
+            }
 
             positionField.hidden = !isTeachingApplicant;
             positionSelect.disabled = !isTeachingApplicant;
             positionSelect.required = isTeachingApplicant;
+
+            if (!isTeachingApplicant) {
+                positionSelect.value = '';
+            }
         };
 
-        applicantType.addEventListener('change', updatePositionField);
-        updatePositionField();
+        roleSelect?.addEventListener('change', updateAccountFields);
+        applicantType.addEventListener('change', updateAccountFields);
+        updateAccountFields();
     }
-}
+});
 
 const convocatoriaForm = document.querySelector('[data-convocatoria-form]');
 

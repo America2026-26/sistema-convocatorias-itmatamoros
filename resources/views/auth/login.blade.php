@@ -32,10 +32,17 @@
                     @enderror
                 </div>
 
-                <div>
+                <div data-password-field>
                     <label for="password" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Contraseña</label>
-                    <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="••••••••"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
+                    <div class="relative">
+                        <input id="password" type="password" name="password" required autocomplete="current-password" placeholder="••••••••"
+                               class="w-full rounded-lg border border-gray-300 px-3 py-2 pr-20 text-sm focus:outline-none focus:ring-2 focus:ring-rose-900">
+                        <button type="button" data-password-toggle data-password-label="contraseña"
+                            aria-controls="password" aria-label="Mostrar contraseña" aria-pressed="false"
+                            class="absolute inset-y-0 right-0 inline-flex items-center rounded-r-lg px-3 text-xs font-semibold text-rose-900 transition hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-rose-700">
+                            <span data-password-toggle-label>Mostrar</span>
+                        </button>
+                    </div>
                 </div>
 
                 <button type="submit" class="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-900/15 transition duration-200 hover:-translate-y-0.5 hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2">

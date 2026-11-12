@@ -13,6 +13,15 @@
     mix-blend-mode: screen;
 }
 
+.brand-surface {
+    background-color: #6d0f2d;
+    color: #fff;
+}
+
+html[data-theme='dark'] .brand-surface .text-white {
+    color: #fff;
+}
+
 html[data-theme='dark'] {
     color-scheme: dark;
     --color-gray-50: #1b222d;
@@ -74,4 +83,22 @@ html[data-theme='dark'] .bg-white {
 
 html[data-theme='dark'] .text-white {
     color: #e8edf4;
+}
+
+html[data-theme='dark'] .bg-white .text-gray-950,
+html[data-theme='dark'] .bg-gray-50 .text-gray-950 {
+    color: #edf1f6;
+}
+
+html[data-theme='dark'] .bg-amber-50\/60 .text-gray-950 {
+    color: #111827;
+}
+
+html[data-theme='dark'] .text-emerald-900,
+html[data-theme='dark'] .text-emerald-950 {
+    color: #b0e1ce;
+}
+
+html[data-theme='dark'] .bg-amber-100.text-amber-900 {
+    color: #f0d797;
 }

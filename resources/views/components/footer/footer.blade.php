@@ -1,4 +1,4 @@
-<footer class="mt-10 border-t border-slate-800 bg-slate-900 py-6 text-slate-300">
+<footer class="mt-10 border-t border-white/15 brand-surface py-6 text-white/80">
     <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-center sm:flex-row sm:px-6 sm:text-left lg:px-8">
         <p class="text-xs">
             &copy; {{ date('Y') }} Instituto Tecnológico de Matamoros. Sistema de Convocatorias.
