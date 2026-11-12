@@ -15,7 +15,7 @@
                         <h2 class="mt-2 font-bold text-gray-900">{{ $postulacion->convocatoria->titulo }}</h2>
                         <p class="mt-1 text-sm text-gray-600">Enviada el {{ $postulacion->created_at->format('d/m/Y H:i') }} · Estatus: {{ ucfirst($postulacion->estatus) }}</p>
                     </div>
-                    <a href="{{ route('postulaciones.show', $postulacion) }}" class="rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50">Ver dictamen</a>
+                    <a href="{{ route('postulaciones.show', $postulacion) }}" class="rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50">Ver expediente enviado</a>
                 </article>
             @empty
                 <p class="rounded-xl border border-gray-200 bg-white p-8 text-center text-sm text-gray-500">Aún no tienes postulaciones.</p>

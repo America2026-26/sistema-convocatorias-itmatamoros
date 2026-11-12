@@ -12,6 +12,15 @@ class AuthenticationAndRolesTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_registration_form_includes_the_teaching_jornada_selector(): void
+    {
+        $this->get('/registro')
+            ->assertOk()
+            ->assertSee('Plaza de Jornada')
+            ->assertSee('Selecciona una plaza docente')
+            ->assertSee('E3817');
+    }
+
     public function test_registration_persists_profile_and_assigns_only_the_user_role(): void
     {
         $response = $this->post('/registro', [
@@ -21,6 +30,7 @@ class AuthenticationAndRolesTest extends TestCase
             'curp' => 'abcd001231hdfxxx01',
             'rfc' => 'abc001231xyz',
             'tipo_usuario' => 'aspirante_docente',
+            'plaza_jornada' => 'E3817',
             'email' => 'ANA@example.com',
             'password' => 'password-seguro',
             'password_confirmation' => 'password-seguro',
@@ -34,6 +44,7 @@ class AuthenticationAndRolesTest extends TestCase
         $this->assertSame('ABCD001231HDFXXX01', $user->curp);
         $this->assertSame('ABC001231XYZ', $user->rfc);
         $this->assertSame('aspirante_docente', $user->tipo_usuario);
+        $this->assertSame('E3817', $user->plaza_jornada);
         $this->assertSame(User::ROLE_USER, $user->role);
         $this->assertTrue(Hash::check('password-seguro', $user->password));
         $this->assertAuthenticatedAs($user);
@@ -41,6 +52,54 @@ class AuthenticationAndRolesTest extends TestCase
             'event' => 'user.created',
             'user_id' => $user->id,
         ]);
+    }
+
+    public function test_registration_requires_a_valid_jornada_for_teaching_applicants(): void
+    {
+        $attributes = [
+            'nombre' => 'Ana',
+            'apellido_paterno' => 'López',
+            'apellido_materno' => 'Ruiz',
+            'curp' => 'abcd001231hdfxxx01',
+            'rfc' => 'abc001231xyz',
+            'tipo_usuario' => 'aspirante_docente',
+            'email' => 'ana@example.com',
+            'password' => 'password-seguro',
+            'password_confirmation' => 'password-seguro',
+        ];
+
+        $this->from('/registro')->post('/registro', $attributes)
+            ->assertRedirect('/registro')
+            ->assertSessionHasErrors('plaza_jornada');
+
+        $attributes['plaza_jornada'] = 'E9999';
+
+        $this->from('/registro')->post('/registro', $attributes)
+            ->assertRedirect('/registro')
+            ->assertSessionHasErrors('plaza_jornada');
+
+        $this->assertDatabaseCount('users', 0);
+    }
+
+    public function test_non_teaching_registration_ignores_a_submitted_jornada(): void
+    {
+        $this->post('/registro', [
+            'nombre' => 'Ana',
+            'apellido_paterno' => 'López',
+            'apellido_materno' => 'Ruiz',
+            'curp' => 'abcd001231hdfxxx01',
+            'rfc' => 'abc001231xyz',
+            'tipo_usuario' => 'aspirante_no_docente',
+            'plaza_jornada' => 'E3817',
+            'email' => 'ana@example.com',
+            'password' => 'password-seguro',
+            'password_confirmation' => 'password-seguro',
+        ])->assertRedirect(route('dashboard'));
+
+        $user = User::query()->where('email', 'ana@example.com')->firstOrFail();
+
+        $this->assertSame('aspirante_no_docente', $user->tipo_usuario);
+        $this->assertNull($user->plaza_jornada);
     }
 
     public function test_registration_rejects_duplicate_identity_and_invalid_applicant_type(): void

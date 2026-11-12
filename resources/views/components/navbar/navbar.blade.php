@@ -204,6 +204,25 @@
     </div>
 
     @auth
+        @if (
+            auth()->user()->role === \App\Models\User::ROLE_USER
+            && auth()->user()->tipo_usuario === 'aspirante_docente'
+            && filled(auth()->user()->plaza_jornada)
+        )
+            <div class="border-t border-slate-800 bg-slate-950/30">
+                <div class="mx-auto flex max-w-7xl items-center justify-end gap-2 px-4 py-2 sm:px-6 lg:px-8">
+                    <span class="max-w-[55vw] truncate text-xs text-slate-200 sm:max-w-none">
+                        {{ auth()->user()->name }}
+                    </span>
+                    <span class="shrink-0 rounded-full bg-rose-900 px-2.5 py-1 text-[11px] font-semibold text-white">
+                        Plaza {{ auth()->user()->plaza_jornada }}
+                    </span>
+                </div>
+            </div>
+        @endif
+    @endauth
+
+    @auth
         <nav id="mobile-navigation" data-navbar-menu aria-label="Navegación móvil"
             class="hidden border-t border-slate-800 px-4 pb-4 pt-2 md:hidden">
             <a href="{{ route('dashboard') }}"

@@ -29,9 +29,18 @@ class ConvocatoriaController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('dictaminador.convocatorias.create');
+        $selectedTypes = null;
+
+        if ($request->hasAny(['tipo_concurso', 'tipo_personal'])) {
+            $selectedTypes = $request->validate([
+                'tipo_concurso' => ['required', Rule::in(['Abierta', 'Cerrada'])],
+                'tipo_personal' => ['required', Rule::in(['Docente', 'No docente'])],
+            ]);
+        }
+
+        return view('dictaminador.convocatorias.create', compact('selectedTypes'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -109,19 +118,97 @@ class ConvocatoriaController extends Controller
      */
     private function validatedData(Request $request): array
     {
-        return $request->validate([
-            'titulo' => ['required', 'string', 'max:255'],
+        $classification = $request->validate([
             'tipo_concurso' => ['required', Rule::in(['Abierta', 'Cerrada'])],
             'tipo_personal' => ['required', Rule::in(['Docente', 'No docente'])],
-            'categoria_nivel' => ['required', 'string', 'max:150'],
-            'plaza_disponible' => ['required', 'string', 'max:150'],
-            'jornada_horario' => ['required', 'string', 'max:150'],
-            'salario' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
+        ]);
+        $detailRules = $this->detailRules($classification['tipo_personal'], $classification['tipo_concurso']);
+        $allowedDetails = array_unique(array_map(
+            static fn (string $attribute): string => explode('.', $attribute)[0],
+            array_keys($detailRules),
+        ));
+
+        $data = $request->validate([
+            'titulo' => ['required', 'string', 'max:255'],
             'fecha_inicio' => ['required', 'date'],
             'fecha_fin' => ['required', 'date', 'after_or_equal:fecha_inicio'],
             'estatus' => ['required', Rule::in(['Activa', 'Borrador', 'Cerrada'])],
             'requisitos_especificos' => ['nullable', 'string', 'max:10000'],
+            'detalles' => ['required', 'array:'.implode(',', $allowedDetails)],
+            ...array_combine(
+                array_map(static fn (string $attribute): string => 'detalles.'.$attribute, array_keys($detailRules)),
+                array_values($detailRules),
+            ),
         ]);
+        $details = $data['detalles'];
+        unset($data['detalles']);
+
+        return [
+            ...$data,
+            ...$classification,
+            'categoria_nivel' => match ([$classification['tipo_personal'], $classification['tipo_concurso']]) {
+                ['Docente', 'Abierta'], ['No docente', 'Abierta'] => $details['categoria_nivel'],
+                ['Docente', 'Cerrada'] => $details['categoria_aspirada'],
+                ['No docente', 'Cerrada'] => $details['categoria_vacante'],
+            },
+            'plaza_disponible' => (string) ($details['plazas_disponibles'] ?? 'No especificada'),
+            'jornada_horario' => $details['jornada_horario'] ?? 'No especificada',
+            'salario' => $details['salario'] ?? null,
+            'detalles_especificos' => $details,
+        ];
+    }
+
+    /**
+     * @return array<string, array<mixed>>
+     */
+    private function detailRules(string $tipoPersonal, string $tipoConcurso): array
+    {
+        return match ([$tipoPersonal, $tipoConcurso]) {
+            ['Docente', 'Abierta'] => [
+                'categoria_nivel' => ['required', 'string', 'max:150'],
+                'plazas_seleccionadas' => ['required', 'array', 'min:1'],
+                'plazas_seleccionadas.*' => ['required', 'string', 'distinct:strict', Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS))],
+                'plazas_disponibles' => ['required', 'integer', 'min:1', 'max:999999'],
+                'jornada_horario' => ['required', 'string', 'max:150'],
+                'salario' => ['required', 'numeric', 'min:0', 'max:9999999999'],
+                'area_materia' => ['required', 'string', 'max:255'],
+                'perfil_academico' => ['required', 'string', 'max:5000'],
+                'pruebas_evaluacion' => ['required', 'array', 'min:1'],
+                'pruebas_evaluacion.*' => ['required', Rule::in(Convocatoria::EVALUATION_TESTS)],
+                'documentacion_obligatoria' => ['required', 'string', 'max:5000'],
+            ],
+            ['Docente', 'Cerrada'] => [
+                'categoria_actual' => ['required', 'string', 'max:150'],
+                'categoria_aspirada' => ['required', 'string', 'max:150'],
+                'plazas_seleccionadas' => ['required', 'array', 'min:1'],
+                'plazas_seleccionadas.*' => ['required', 'string', 'distinct:strict', Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS))],
+                'fecha_evaluacion' => ['required', 'date'],
+                'antiguedad_minima_meses' => ['required', 'integer', 'min:12', 'max:1200'],
+                'constancias_merito' => ['required', 'string', 'max:5000'],
+                'comision_dictaminadora' => ['required', 'string', 'max:2000'],
+            ],
+            ['No docente', 'Abierta'] => [
+                'grupo_puesto' => ['required', 'string', 'max:150'],
+                'categoria_nivel' => ['required', 'string', 'max:150'],
+                'plazas_disponibles' => ['required', 'integer', 'min:1', 'max:999999'],
+                'salario' => ['required', 'numeric', 'min:0', 'max:9999999999'],
+                'jornada_horario' => ['required', 'string', 'max:150'],
+                'adscripcion' => ['required', 'string', 'max:255'],
+                'escolaridad_minima' => ['required', 'string', 'max:2000'],
+                'competencias' => ['required', 'string', 'max:5000'],
+                'requisitos_ingreso' => ['required', 'string', 'max:5000'],
+            ],
+            ['No docente', 'Cerrada'] => [
+                'grupo_puesto' => ['required', 'string', 'max:150'],
+                'categoria_vacante' => ['required', 'string', 'max:150'],
+                'fecha_aplicacion_factores' => ['required', 'date'],
+                'antiguedad_minima_meses' => ['required', 'integer', 'min:6', 'max:1200'],
+                'factor_aptitud' => ['required', 'string', 'max:5000'],
+                'factor_conocimientos' => ['required', 'string', 'max:5000'],
+                'factor_disciplina' => ['required', 'string', 'max:5000'],
+                'factor_puntualidad' => ['required', 'string', 'max:5000'],
+            ],
+        };
     }
 
     /**
@@ -141,6 +228,7 @@ class ConvocatoriaController extends Controller
             'fecha_fin',
             'estatus',
             'requisitos_especificos',
+            'detalles_especificos',
         ]);
     }
 }

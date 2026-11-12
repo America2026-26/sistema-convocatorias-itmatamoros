@@ -3,34 +3,61 @@
 @section('title', 'Panel de Administración - Sistema de Convocatorias')
 
 @section('content')
-    <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div class="mb-8">
-            <h1 class="text-2xl font-bold text-gray-900">Panel de administración</h1>
-            <p class="mt-1 text-sm text-gray-600">Resumen del sistema y herramientas de administración.</p>
+    <section class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+        <header class="flex flex-col gap-6 rounded-2xl bg-gradient-to-br from-rose-950 via-rose-900 to-slate-900 p-6 text-white shadow-sm sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+            <div class="max-w-2xl">
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-rose-200">Administración del sistema</p>
+                <h1 class="mt-2 text-2xl font-bold sm:text-3xl">Panel de administración</h1>
+                <p class="mt-2 text-sm leading-6 text-rose-100">
+                    Supervisa las cuentas, las convocatorias y la actividad registrada en la plataforma.
+                </p>
+            </div>
+            <nav aria-label="Acciones de administración" class="flex flex-col gap-3 sm:flex-row">
+                <a href="{{ route('admin.users.index') }}" class="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-rose-950 transition hover:bg-rose-50">
+                    Administrar cuentas
+                </a>
+                <a href="{{ route('admin.audit-logs.index') }}" class="rounded-xl border border-white/40 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-white/10">
+                    Historial de cambios
+                </a>
+            </nav>
+        </header>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <article class="rounded-2xl border border-rose-200 bg-rose-50/70 p-5 shadow-sm">
+                <p class="text-sm font-medium text-rose-950">Convocatorias creadas</p>
+                <p class="mt-3 text-3xl font-bold text-rose-950">{{ number_format($convocatoriasCount) }}</p>
+                <p class="mt-1 text-xs text-rose-900">Registradas en el sistema</p>
+            </article>
+            <article class="rounded-2xl border border-sky-200 bg-sky-50/70 p-5 shadow-sm">
+                <p class="text-sm font-medium text-sky-900">Usuarios en el sistema</p>
+                <p class="mt-3 text-3xl font-bold text-sky-950">{{ number_format($usersCount) }}</p>
+                <p class="mt-1 text-xs text-sky-800">Cuentas activas de todos los roles</p>
+            </article>
+            <article class="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
+                <p class="text-sm font-medium text-amber-950">Postulaciones pendientes</p>
+                <p class="mt-3 text-3xl font-bold text-amber-950">{{ number_format($pendingCount) }}</p>
+                <p class="mt-1 text-xs text-amber-900">En espera de dictamen</p>
+            </article>
         </div>
 
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            @foreach ([
-                ['Convocatorias creadas', $convocatoriasCount, route('home')],
-                ['Usuarios en el sistema', $usersCount, route('admin.users.index')],
-                ['Postulaciones pendientes', $pendingCount, null],
-            ] as [$label, $value, $url])
-                <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                    <p class="text-sm text-gray-600">{{ $label }}</p>
-                    <p class="mt-3 text-3xl font-bold text-rose-950">{{ number_format($value) }}</p>
-                </div>
-            @endforeach
-        </div>
+        <section class="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="admin-tools-heading">
+            <div>
+                <h2 id="admin-tools-heading" class="text-lg font-bold text-gray-950">Herramientas de administración</h2>
+                <p class="mt-1 text-sm text-gray-600">Accede a las tareas principales de control del sistema.</p>
+            </div>
 
-        <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2">
-            <a href="{{ route('admin.users.index') }}" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-rose-700">
-                <h2 class="font-bold text-gray-900">Administrar cuentas</h2>
-                <p class="mt-1 text-sm text-gray-600">Crear o editar cuentas de usuarios y dictaminadores.</p>
-            </a>
-            <a href="{{ route('admin.audit-logs.index') }}" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:border-rose-700">
-                <h2 class="font-bold text-gray-900">Historial de cambios</h2>
-                <p class="mt-1 text-sm text-gray-600">Consultar eventos del sistema y sus responsables.</p>
-            </a>
-        </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                <a href="{{ route('admin.users.index') }}" class="group rounded-xl border border-gray-200 p-5 transition hover:-translate-y-0.5 hover:border-rose-300 hover:shadow-sm">
+                    <span class="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-900">Cuentas</span>
+                    <h3 class="mt-3 font-bold text-gray-950 group-hover:text-rose-900">Administrar cuentas</h3>
+                    <p class="mt-1 text-sm leading-6 text-gray-600">Crear, editar y gestionar las cuentas de usuarios, dictaminadores y administradores.</p>
+                </a>
+                <a href="{{ route('admin.audit-logs.index') }}" class="group rounded-xl border border-gray-200 p-5 transition hover:-translate-y-0.5 hover:border-rose-300 hover:shadow-sm">
+                    <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">Actividad</span>
+                    <h3 class="mt-3 font-bold text-gray-950 group-hover:text-rose-900">Historial de cambios</h3>
+                    <p class="mt-1 text-sm leading-6 text-gray-600">Consultar los eventos del sistema, las acciones realizadas y sus responsables.</p>
+                </a>
+            </div>
+        </section>
     </section>
 @endsection

@@ -48,6 +48,7 @@ class User extends Authenticatable
         'curp',
         'rfc',
         'tipo_usuario',
+        'plaza_jornada',
         'role',
     ];
 

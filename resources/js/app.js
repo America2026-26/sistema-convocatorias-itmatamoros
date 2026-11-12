@@ -124,6 +124,53 @@ if (themeToggle) {
     });
 }
 
+const registrationForm = document.querySelector('[data-registration-form]');
+
+if (registrationForm) {
+    const applicantType = registrationForm.querySelector('[data-applicant-type]');
+    const positionField = registrationForm.querySelector('[data-teaching-position-field]');
+    const positionSelect = registrationForm.querySelector('[name="plaza_jornada"]');
+
+    if (
+        applicantType instanceof HTMLSelectElement
+        && positionField instanceof HTMLElement
+        && positionSelect instanceof HTMLSelectElement
+    ) {
+        const updatePositionField = () => {
+            const isTeachingApplicant = applicantType.value === 'aspirante_docente';
+
+            positionField.hidden = !isTeachingApplicant;
+            positionSelect.disabled = !isTeachingApplicant;
+            positionSelect.required = isTeachingApplicant;
+        };
+
+        applicantType.addEventListener('change', updatePositionField);
+        updatePositionField();
+    }
+}
+
+const convocatoriaForm = document.querySelector('[data-convocatoria-form]');
+
+if (convocatoriaForm) {
+    const typeControls = convocatoriaForm.querySelectorAll('[data-convocatoria-type]');
+    const detailSections = convocatoriaForm.querySelectorAll('[data-convocatoria-details]');
+
+    const updateConvocatoriaDetails = () => {
+        const tipoPersonal = convocatoriaForm.querySelector('[name="tipo_personal"]')?.value;
+        const tipoConcurso = convocatoriaForm.querySelector('[name="tipo_concurso"]')?.value;
+
+        detailSections.forEach((section) => {
+            const isSelected = section.dataset.tipoPersonal === tipoPersonal
+                && (section.dataset.tipoConcurso === '*' || section.dataset.tipoConcurso === tipoConcurso);
+            section.hidden = !isSelected;
+            section.disabled = !isSelected;
+        });
+    };
+
+    typeControls.forEach((control) => control.addEventListener('change', updateConvocatoriaDetails));
+    updateConvocatoriaDetails();
+}
+
 const photoModal = document.querySelector('[data-photo-modal]');
 
 if (photoModal) {

@@ -28,7 +28,7 @@
         </div>
 
         <div class="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white px-5 py-7 shadow-lg sm:px-8 sm:py-8">
-            <form action="{{ route('register.store') }}" method="POST" class="space-y-5">
+            <form action="{{ route('register.store') }}" method="POST" class="space-y-5" data-registration-form>
                 @csrf
                 @if ($errors->any())
                     <div role="alert" class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
@@ -75,10 +75,25 @@
 
                 <div>
                     <label for="tipo_usuario" class="block text-xs font-semibold text-gray-700 uppercase mb-1">Tipo de Perfil</label>
-                    <select id="tipo_usuario" name="tipo_usuario" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
-                        <option value="aspirante_docente">Aspirante a Plaza Docente</option>
-                        <option value="aspirante_no_docente">Aspirante a Plaza No Docente / Administrativa</option>
+                    <select id="tipo_usuario" name="tipo_usuario" data-applicant-type required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-900 focus:outline-none">
+                        <option value="aspirante_docente" @selected(old('tipo_usuario', 'aspirante_docente') === 'aspirante_docente')>Aspirante a Plaza Docente</option>
+                        <option value="aspirante_no_docente" @selected(old('tipo_usuario') === 'aspirante_no_docente')>Aspirante a Plaza No Docente / Administrativa</option>
                     </select>
+                </div>
+
+                <div data-teaching-position-field @if (old('tipo_usuario', 'aspirante_docente') !== 'aspirante_docente') hidden @endif>
+                    <label for="plaza_jornada" class="mb-1 block text-xs font-semibold uppercase text-gray-700">Plaza de Jornada</label>
+                    <select id="plaza_jornada" name="plaza_jornada" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-900">
+                        <option value="">Selecciona una plaza docente</option>
+                        @foreach (\App\Models\Convocatoria::TEACHING_POSITIONS as $positionCode => $positionLabel)
+                            <option value="{{ $positionCode }}" @selected(old('plaza_jornada') === $positionCode)>
+                                {{ $positionCode }} — {{ $positionLabel }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('plaza_jornada')
+                        <p role="alert" class="mt-1 text-sm text-red-700">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>

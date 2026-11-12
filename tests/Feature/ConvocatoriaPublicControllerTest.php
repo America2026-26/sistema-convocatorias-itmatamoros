@@ -94,6 +94,128 @@ class ConvocatoriaPublicControllerTest extends TestCase
             ->assertSessionHasErrors('tipo_concurso');
     }
 
+    public function test_applicant_sees_a_postulate_button_instead_of_inline_upload_fields(): void
+    {
+        $applicant = User::factory()->create(['role' => User::ROLE_USER]);
+        $convocatoria = $this->createConvocatoria();
+
+        $this->actingAs($applicant)
+            ->get(route('convocatorias.show', $convocatoria))
+            ->assertOk()
+            ->assertSee('Postularme')
+            ->assertSee(route('postulaciones.create', $convocatoria))
+            ->assertDontSee('name="documento"', false)
+            ->assertDontSee('name="documentos[', false);
+    }
+
+    #[DataProvider('publicPresentationVariants')]
+    public function test_home_and_detail_show_all_variant_information_and_required_documents(
+        string $tipoPersonal,
+        string $tipoConcurso,
+        array $details,
+        array $visibleText,
+        array $visibleDocuments,
+    ): void {
+        $convocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria con requisitos completos',
+            'tipo_personal' => $tipoPersonal,
+            'tipo_concurso' => $tipoConcurso,
+            'requisitos_especificos' => 'Información adicional publicada.',
+            'detalles_especificos' => $details,
+        ]);
+
+        foreach ([
+            $this->get(route('home')),
+            $this->get(route('convocatorias.show', $convocatoria)),
+        ] as $response) {
+            $response->assertOk()
+                ->assertSee($convocatoria->titulo)
+                ->assertSee('Información adicional publicada.');
+
+            foreach ($visibleText as $text) {
+                $response->assertSee($text);
+            }
+
+            foreach ($visibleDocuments as $document) {
+                $response->assertSee($document);
+            }
+        }
+    }
+
+    /**
+     * @return array<string, array{string, string, array<string, mixed>, list<string>, list<string>}>
+     */
+    public static function publicPresentationVariants(): array
+    {
+        return [
+            'docente abierta' => [
+                'Docente',
+                'Abierta',
+                [
+                    'categoria_nivel' => 'Profesor Asociado',
+                    'plazas_seleccionadas' => ['E3617', 'E3817'],
+                    'plazas_disponibles' => 2,
+                    'jornada_horario' => 'Tiempo completo',
+                    'salario' => '18000.00',
+                    'area_materia' => 'Álgebra',
+                    'perfil_academico' => 'Doctorado en Matemáticas.',
+                    'pruebas_evaluacion' => ['Interrogatorio'],
+                    'documentacion_obligatoria' => 'Acreditación de experiencia.',
+                ],
+                ['Plazas seleccionadas', 'E3617', 'Nivel 17', '½ Tiempo', 'E3817', 'Tiempo Completo', 'Área o materia', 'Álgebra', 'Doctorado en Matemáticas.', 'Interrogatorio', 'Acreditación de experiencia.'],
+                ['Currículum Vitae documentado en PDF', 'Debe incluir constancias de experiencia docente y profesional.', 'Cédula profesional en PDF'],
+            ],
+            'docente cerrada' => [
+                'Docente',
+                'Cerrada',
+                [
+                    'categoria_actual' => 'Profesor Asociado',
+                    'categoria_aspirada' => 'Profesor Titular',
+                    'plazas_seleccionadas' => ['E3815'],
+                    'fecha_evaluacion' => '2026-12-10',
+                    'antiguedad_minima_meses' => 12,
+                    'constancias_merito' => 'Constancias de publicaciones recientes.',
+                    'comision_dictaminadora' => 'Comisión académica institucional',
+                ],
+                ['Plazas seleccionadas', 'E3815', 'Nivel 15', 'Tiempo Completo', 'Categoría actual', 'Profesor Titular', 'Fecha de evaluación', '12 meses', 'Constancias de publicaciones recientes.'],
+                ['Constancia de antigüedad definitiva en PDF', 'al menos un año de servicio ininterrumpido', 'Evaluaciones del desempeño docente en PDF'],
+            ],
+            'no docente abierta' => [
+                'No docente',
+                'Abierta',
+                [
+                    'grupo_puesto' => 'Técnico especializado',
+                    'categoria_nivel' => 'Nivel 5',
+                    'plazas_disponibles' => 1,
+                    'salario' => '15000.00',
+                    'jornada_horario' => 'Matutino',
+                    'adscripcion' => 'Departamento de Sistemas',
+                    'escolaridad_minima' => 'Licenciatura terminada.',
+                    'competencias' => 'Mantenimiento y redes.',
+                    'requisitos_ingreso' => 'Cumplir el reglamento institucional.',
+                ],
+                ['Grupo del puesto', 'Departamento de Sistemas', 'Escolaridad mínima', 'Mantenimiento y redes.', 'Cumplir el reglamento institucional.'],
+                ['Solicitud de empleo o Curriculum Vitae en PDF', 'Adjunte ambos documentos en un solo archivo PDF.', 'Certificado médico general en PDF'],
+            ],
+            'no docente cerrada' => [
+                'No docente',
+                'Cerrada',
+                [
+                    'grupo_puesto' => 'Administrativo',
+                    'categoria_vacante' => 'Nivel 4',
+                    'fecha_aplicacion_factores' => '2026-12-10',
+                    'antiguedad_minima_meses' => 6,
+                    'factor_aptitud' => 'Evaluación de aptitud.',
+                    'factor_conocimientos' => 'Cursos internos acreditados.',
+                    'factor_disciplina' => 'Historial disciplinario.',
+                    'factor_puntualidad' => 'Registro de puntualidad.',
+                ],
+                ['Grupo del puesto', 'Categoría de la vacante', '6 meses', 'Cursos internos acreditados.', 'Historial disciplinario.', 'Registro de puntualidad.'],
+                ['Constancia de base y antigüedad en PDF', 'mínimo de seis meses de base', 'Constancia de historial laboral o expediente en PDF'],
+            ],
+        ];
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      */

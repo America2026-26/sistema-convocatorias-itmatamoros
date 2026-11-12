@@ -12,6 +12,7 @@ use App\Http\Controllers\Dictaminador\PostulanteController;
 use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostulacionController;
+use App\Http\Controllers\PostulacionDocumentoController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Convocatoria;
 use App\Models\User;
@@ -106,6 +107,10 @@ Route::middleware('auth')->group(function () {
             ->name('postulaciones.show');
         Route::get('/mis-postulaciones/{postulacion}/documento', [PostulacionController::class, 'document'])
             ->name('postulaciones.documento');
+        Route::get('/mis-postulaciones/{postulacion}/documentos/{documento}', [PostulacionDocumentoController::class, 'show'])
+            ->name('postulaciones.documento-requerido');
+        Route::get('/convocatorias/{convocatoria}/postular', [PostulacionController::class, 'create'])
+            ->name('postulaciones.create');
         Route::post('/convocatorias/{convocatoria}/postular', [PostulacionController::class, 'store'])
             ->name('postulaciones.store');
     });
@@ -131,6 +136,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/postulantes/{postulacion}/documento', [PostulanteController::class, 'document'])
                 ->middleware('role:'.User::ROLE_REVIEWER.','.User::ROLE_ADMIN)
                 ->name('postulantes.document');
+            Route::get('/postulantes/{postulacion}/documentos/{documento}', [PostulacionDocumentoController::class, 'show'])
+                ->name('postulantes.required-document');
         });
 
     Route::middleware(['auth'])->group(function () {

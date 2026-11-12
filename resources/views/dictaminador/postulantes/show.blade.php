@@ -43,11 +43,20 @@
             @endif
 
             <div class="mt-6 border-t border-gray-100 pt-5">
-                <h2 class="text-sm font-bold text-gray-900">Documento PDF</h2>
-                @if ($postulacion->documento_path)
+                <h2 class="text-sm font-bold text-gray-900">Documentación entregada</h2>
+                @if ($postulacion->documentos->isNotEmpty())
+                    <ul class="mt-3 space-y-3">
+                        @foreach ($postulacion->documentos as $documento)
+                            <li class="flex flex-col justify-between gap-2 rounded-lg border border-gray-200 p-3 sm:flex-row sm:items-center">
+                                <span class="text-sm font-medium text-gray-800">{{ $documento->nombre }}</span>
+                                <a href="{{ route('dictaminador.postulantes.required-document', [$postulacion, $documento]) }}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-rose-900 hover:underline">Abrir PDF</a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @elseif ($postulacion->documento_path)
                     <a href="{{ route('dictaminador.postulantes.document', $postulacion) }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-900 hover:bg-rose-50">Abrir expediente PDF</a>
                 @else
-                    <p class="mt-2 text-sm text-gray-500">No se adjuntó un documento PDF.</p>
+                    <p class="mt-2 text-sm text-gray-500">No se adjuntaron documentos.</p>
                 @endif
             </div>
 

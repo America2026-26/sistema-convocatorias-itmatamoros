@@ -62,7 +62,7 @@ class PostulanteController extends Controller
     public function show(Postulacion $postulacion): View
     {
         return view('dictaminador.postulantes.show', [
-            'postulacion' => $postulacion->load(['user', 'convocatoria', 'revisor']),
+            'postulacion' => $postulacion->load(['user', 'convocatoria', 'revisor', 'documentos']),
         ]);
     }
 

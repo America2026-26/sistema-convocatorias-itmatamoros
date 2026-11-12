@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Postulacion extends Model
 {
@@ -53,5 +54,10 @@ class Postulacion extends Model
     public function revisor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'revisado_por')->withTrashed();
+    }
+
+    public function documentos(): HasMany
+    {
+        return $this->hasMany(PostulacionDocumento::class);
     }
 }

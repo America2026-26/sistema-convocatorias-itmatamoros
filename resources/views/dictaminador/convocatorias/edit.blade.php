@@ -9,6 +9,8 @@
             'action' => route('dictaminador.convocatorias.update', $convocatoria),
             'method' => 'PUT',
             'submitLabel' => 'Guardar cambios',
+            'tipoConcurso' => $convocatoria->tipo_concurso,
+            'tipoPersonal' => $convocatoria->tipo_personal,
         ])
     </section>
 @endsection

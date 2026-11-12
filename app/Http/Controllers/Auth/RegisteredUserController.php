@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Convocatoria;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,12 @@ class RegisteredUserController extends Controller
             'curp' => ['required', 'alpha_num', 'size:18', 'unique:users,curp'],
             'rfc' => ['required', 'alpha_num', 'min:12', 'max:13', 'unique:users,rfc'],
             'tipo_usuario' => ['required', Rule::in(User::APPLICANT_TYPES)],
+            'plaza_jornada' => [
+                'exclude_unless:tipo_usuario,aspirante_docente',
+                'required',
+                'string',
+                Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS)),
+            ],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
@@ -59,6 +66,7 @@ class RegisteredUserController extends Controller
                     'curp',
                     'rfc',
                     'tipo_usuario',
+                    'plaza_jornada',
                 ]),
             ]);
 

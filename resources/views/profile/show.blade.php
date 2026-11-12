@@ -66,6 +66,12 @@
                     <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Tipo de perfil</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ $user->tipo_usuario ?: 'No registrado' }}</dd>
                 </div>
+                @if ($user->role === \App\Models\User::ROLE_USER && $user->tipo_usuario === 'aspirante_docente')
+                    <div>
+                        <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Plaza de Jornada</dt>
+                        <dd class="mt-1 text-sm text-gray-900">{{ $user->plaza_jornada ?: 'No registrada' }}</dd>
+                    </div>
+                @endif
                 <div>
                     <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">CURP</dt>
                     <dd class="mt-1 text-sm text-gray-900">{{ $user->curp ?: 'No registrado' }}</dd>

@@ -7,7 +7,6 @@ use App\Models\Convocatoria;
 use App\Models\Postulacion;
 use App\Models\User;
 use App\Notifications\NuevaPostulacion;
-use Illuminate\Database\QueryException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Throwable;
 
 class PostulacionController extends Controller
 {
@@ -35,7 +35,30 @@ class PostulacionController extends Controller
         abort_unless($postulacion->user_id === $request->user()->id, 404);
 
         return view('postulaciones.show', [
-            'postulacion' => $postulacion->load('convocatoria'),
+            'postulacion' => $postulacion->load(['convocatoria', 'documentos']),
+        ]);
+    }
+
+    public function create(Request $request, Convocatoria $convocatoria): View|RedirectResponse
+    {
+        abort_unless($request->user()->role === User::ROLE_USER, 403);
+
+        if (! $convocatoria->isOpen()) {
+            return redirect()->route('convocatorias.show', $convocatoria)
+                ->withErrors(['convocatoria' => 'Esta convocatoria no está recibiendo postulaciones.']);
+        }
+
+        $postulacionExistente = $convocatoria->postulaciones()
+            ->where('user_id', $request->user()->id)
+            ->first();
+
+        if ($postulacionExistente) {
+            return redirect()->route('postulaciones.show', $postulacionExistente);
+        }
+
+        return view('postulaciones.create', [
+            'convocatoria' => $convocatoria,
+            'documentos' => $convocatoria->applicantDocumentRequirements(),
         ]);
     }
 
@@ -49,15 +72,30 @@ class PostulacionController extends Controller
             ]);
         }
 
-        $data = $request->validate([
-            'informacion' => ['nullable', 'string', 'max:10000'],
-            'documento' => ['nullable', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'],
-        ]);
+        if (Postulacion::query()
+            ->where('convocatoria_id', $convocatoria->id)
+            ->where('user_id', $request->user()->id)
+            ->exists()) {
+            throw ValidationException::withMessages([
+                'convocatoria' => 'Ya enviaste una postulación a esta convocatoria.',
+            ]);
+        }
 
-        $path = null;
+        $requirements = $convocatoria->applicantDocumentRequirements();
+        $rules = [
+            'informacion' => ['nullable', 'string', 'max:10000'],
+            'documentos' => ['required', 'array:'.implode(',', array_keys($requirements))],
+        ];
+
+        foreach (array_keys($requirements) as $key) {
+            $rules['documentos.'.$key] = ['required', 'file', 'mimes:pdf', 'extensions:pdf', 'max:10240'];
+        }
+
+        $data = $request->validate($rules);
+        $storedPaths = [];
 
         try {
-            $postulacion = DB::transaction(function () use ($request, $convocatoria, $data, &$path): Postulacion {
+            $postulacion = DB::transaction(function () use ($request, $convocatoria, $data, $requirements, &$storedPaths): Postulacion {
                 $convocatoria = Convocatoria::query()
                     ->lockForUpdate()
                     ->findOrFail($convocatoria->id);
@@ -66,12 +104,6 @@ class PostulacionController extends Controller
                     throw ValidationException::withMessages([
                         'convocatoria' => 'Esta convocatoria ya no está recibiendo postulaciones.',
                     ]);
-                }
-
-                $path = $request->file('documento')?->store('postulaciones', 'local');
-
-                if ($request->hasFile('documento') && ! $path) {
-                    throw new \RuntimeException('No se pudo guardar el documento de la postulación.');
                 }
 
                 if (Postulacion::query()
@@ -99,8 +131,22 @@ class PostulacionController extends Controller
                             'tipo_usuario',
                         ]),
                     ],
-                    'documento_path' => $path,
                 ]);
+
+                foreach ($requirements as $key => $requirement) {
+                    $path = $data['documentos'][$key]->store('postulaciones/'.$postulacion->id, 'local');
+
+                    if (! is_string($path) || $path === '') {
+                        throw new \RuntimeException('No se pudo guardar el documento '.$requirement['label'].'.');
+                    }
+
+                    $storedPaths[] = $path;
+                    $postulacion->documentos()->create([
+                        'clave' => $key,
+                        'nombre' => $requirement['label'],
+                        'path' => $path,
+                    ]);
+                }
 
                 AuditLog::record('postulacion.created', $request->user(), $request->user(), [
                     'postulacion_id' => $postulacion->id,
@@ -116,29 +162,29 @@ class PostulacionController extends Controller
                 return $postulacion;
             });
         } catch (UniqueConstraintViolationException $exception) {
-            if ($path) {
-                Storage::disk('local')->delete($path);
-            }
+            $this->deleteStoredDocuments($storedPaths);
 
             throw ValidationException::withMessages([
                 'convocatoria' => 'Ya enviaste una postulación a esta convocatoria.',
             ]);
-        } catch (ValidationException $exception) {
-            if ($path) {
-                Storage::disk('local')->delete($path);
-            }
-
-            throw $exception;
-        } catch (QueryException $exception) {
-            if ($path) {
-                Storage::disk('local')->delete($path);
-            }
+        } catch (Throwable $exception) {
+            $this->deleteStoredDocuments($storedPaths);
 
             throw $exception;
         }
 
         return redirect()->route('postulaciones.show', $postulacion)
             ->with('status', 'Tu postulación fue enviada.');
+    }
+
+    /**
+     * @param  list<string>  $paths
+     */
+    private function deleteStoredDocuments(array $paths): void
+    {
+        if ($paths !== []) {
+            Storage::disk('local')->delete($paths);
+        }
     }
 
     public function document(Request $request, Postulacion $postulacion): BinaryFileResponse

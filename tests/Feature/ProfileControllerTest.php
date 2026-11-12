@@ -48,6 +48,23 @@ class ProfileControllerTest extends TestCase
             ->assertSee('aspirante_docente');
     }
 
+    public function test_teaching_applicant_sees_jornada_position_in_profile_and_navigation(): void
+    {
+        $user = User::factory()->create([
+            'role' => User::ROLE_USER,
+            'name' => 'Ana López Ruiz',
+            'tipo_usuario' => 'aspirante_docente',
+            'plaza_jornada' => 'E3817',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('profile.show'))
+            ->assertOk()
+            ->assertSee('Plaza de Jornada')
+            ->assertSee('Plaza E3817')
+            ->assertSee('Ana López Ruiz');
+    }
+
     public function test_unauthenticated_visitors_cannot_view_profile_or_settings(): void
     {
         $this->get(route('profile.show'))->assertRedirect(route('login'));

@@ -78,43 +78,7 @@
                             {{ $convocatoria->titulo }}
                         </h4>
 
-                        <!-- Detalles clave -->
-                        <div
-                            class="grid grid-cols-2 gap-4 text-xs text-gray-600 my-4 bg-rose-50/50 p-3 rounded-lg border border-rose-100">
-                            <div>
-                                <span class="block font-semibold text-gray-500">Categoría / Nivel:</span>
-                                <span class="text-gray-800 font-medium">{{ $convocatoria->categoria_nivel }}</span>
-                            </div>
-                            <div>
-                                <span class="block font-semibold text-gray-500">Plazas Disponibles:</span>
-                                <span class="text-gray-800 font-medium">{{ $convocatoria->plaza_disponible }}</span>
-                            </div>
-                            <div>
-                                <span class="block font-semibold text-gray-500">Jornada / Horario:</span>
-                                <span class="text-gray-800 font-medium">{{ $convocatoria->jornada_horario }}</span>
-                            </div>
-                            <div>
-                                <span class="block font-semibold text-gray-500">Remuneración Salarial:</span>
-                                <span class="text-emerald-700 font-bold">${{ number_format($convocatoria->salario, 2) }}
-                                    MXN</span>
-                            </div>
-                        </div>
-
-                        <!-- Fechas vigencia -->
-                        <div class="text-xs text-gray-500 flex items-center justify-between mb-4">
-                            <span><strong>Apertura:</strong>
-                                {{ \Carbon\Carbon::parse($convocatoria->fecha_inicio)->format('d/m/Y') }}</span>
-                            <span><strong>Cierre:</strong>
-                                {{ \Carbon\Carbon::parse($convocatoria->fecha_fin)->format('d/m/Y') }}</span>
-                        </div>
-
-                        <!-- Requisitos específicos -->
-                        <div class="border-t border-gray-100 pt-3">
-                            <p class="text-xs text-gray-600 line-clamp-2">
-                                <strong class="text-gray-700">Requisitos:</strong>
-                                {{ $convocatoria->requisitos_especificos }}
-                            </p>
-                        </div>
+                        @include('convocatorias._details', ['convocatoria' => $convocatoria, 'compact' => true])
                     </div>
 
                     <!-- Botón de acción en Guinda -->
