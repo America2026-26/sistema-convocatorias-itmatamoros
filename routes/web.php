@@ -4,10 +4,12 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\CalendarioController;
 use App\Http\Controllers\ConvocatoriaPublicController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dictaminador\ConvocatoriaController as DictaminadorConvocatoriaController;
 use App\Http\Controllers\Dictaminador\PostulanteController;
+use App\Http\Controllers\ExpedienteController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostulacionController;
 use App\Http\Controllers\ProfileController;
@@ -16,10 +18,10 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\Rule;
-use App\Http\Controllers\ExpedienteController;
-use App\Http\Controllers\CalendarioController;
 
-Route::get('/', function (Request $request) {
+Route::redirect('/', '/login')->middleware('guest')->name('root');
+
+Route::get('/convocatorias', function (Request $request) {
     $filters = $request->validate([
         'tipo_concurso' => ['nullable', Rule::in(['Abierta', 'Cerrada'])],
         'tipo_personal' => ['nullable', Rule::in(['Docente', 'No docente'])],
@@ -131,8 +133,8 @@ Route::middleware('auth')->group(function () {
                 ->name('postulantes.document');
         });
 
-        Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
         Route::get('/mi-expediente/estado', [ExpedienteController::class, 'estado'])->name('expediente.estado');
         Route::get('/calendario-institucional', [CalendarioController::class, 'index'])->name('calendario.institucional');
-});
+    });
 });

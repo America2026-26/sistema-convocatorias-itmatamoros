@@ -3,17 +3,23 @@
 @section('title', 'Iniciar Sesión - Sistema de Convocatorias')
 
 @section('content')
-    <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        
-        <div class="sm:mx-auto sm:w-full sm:max-w-md text-center mb-6">
-            <div class="inline-block bg-rose-950 text-white font-bold text-2xl p-3 rounded-lg shadow-md mb-2">
-                ITM
+    <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div class="mb-8 w-full max-w-2xl text-center">
+            <div class="mx-auto mb-6 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
+                <img
+                    src="https://dev.matamoros.tecnm.mx/tecnm_itm/sitio/drive/logo-del-tec-guindo-289x300.png"
+                    alt="Logotipo del Instituto Tecnológico de Matamoros"
+                    class="h-16 w-16 shrink-0 rounded-2xl bg-white p-2 object-contain shadow-sm ring-1 ring-gray-200"
+                >
+                <span class="max-w-xs text-lg font-bold leading-tight text-gray-900 sm:max-w-none sm:text-xl">
+                    Instituto Tecnológico de Matamoros
+                </span>
             </div>
-            <h2 class="text-2xl font-extrabold text-gray-900">Iniciar Sesión</h2>
-            <p class="text-xs text-gray-600 mt-1">Accede a tu panel de seguimiento de expediente y dictámenes</p>
+            <h1 class="text-2xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-3xl">Iniciar Sesión</h1>
+            <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-600">Accede a tu panel de seguimiento de expediente y dictámenes</p>
         </div>
 
-        <div class="bg-white py-8 px-6 shadow-xl rounded-2xl sm:max-w-md sm:w-full border border-gray-200">
+        <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white px-5 py-7 shadow-lg sm:px-8 sm:py-8">
             <form action="{{ route('login.store') }}" method="POST" class="space-y-5">
                 @csrf
 
@@ -36,7 +42,7 @@
                     <svg class="h-5 w-5 transition-transform group-hover:translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-4-4 4-5-4-5m4 5H3" />
                     </svg>
-                    Ingresar al sistema
+                    Iniciar Sesión
                 </button>
             </form>
 
@@ -48,8 +54,6 @@
             </div>
         </div>
 
-        <div class="mt-6 text-center">
-            <a href="/" class="text-xs text-gray-500 hover:text-gray-800">&larr; Volver a las convocatorias</a>
-        </div>
+        
     </div>
 @endsection

@@ -3,17 +3,31 @@
 @section('title', 'Registro de Aspirante - Sistema de Convocatorias')
 
 @section('content')
-    <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
-        
-        <div class="sm:mx-auto sm:w-full sm:max-w-md text-center mb-6">
-            <div class="inline-block bg-rose-950 text-white font-bold text-2xl p-3 rounded-lg shadow-md mb-2">
-                ITM
+    <div class="flex min-h-[70vh] flex-col items-center justify-center px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <div class="mb-5 w-full max-w-2xl">
+            <a href="{{ route('login') }}" aria-label="Volver al inicio de sesión"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-600 transition hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-900 focus:ring-offset-2">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m15 18-6-6 6-6M9 12h12" />
+                </svg>
+            </a>
+        </div>
+        <div class="mb-8 w-full max-w-2xl text-center">
+            <div class="mx-auto mb-6 flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
+                <img
+                    src="https://dev.matamoros.tecnm.mx/tecnm_itm/sitio/drive/logo-del-tec-guindo-289x300.png"
+                    alt="Logotipo del Instituto Tecnológico de Matamoros"
+                    class="h-16 w-16 shrink-0 rounded-2xl bg-white p-2 object-contain shadow-sm ring-1 ring-gray-200"
+                >
+                <span class="max-w-xs text-lg font-bold leading-tight text-gray-900 sm:max-w-none sm:text-xl">
+                    Instituto Tecnológico de Matamoros
+                </span>
             </div>
-            <h2 class="text-2xl font-extrabold text-gray-900">Registro de Cuenta de Aspirante</h2>
-            <p class="text-xs text-gray-600 mt-1">Ingresa tus datos personales para solicitar plazas docentes o no docentes</p>
+            <h1 class="text-2xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-3xl">Registro de Cuenta de Aspirante</h1>
+            <p class="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-600">Ingresa tus datos personales para solicitar plazas docentes o no docentes</p>
         </div>
 
-        <div class="bg-white py-8 px-6 shadow-xl rounded-2xl sm:max-w-xl sm:w-full border border-gray-200">
+        <div class="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white px-5 py-7 shadow-lg sm:px-8 sm:py-8">
             <form action="{{ route('register.store') }}" method="POST" class="space-y-5">
                 @csrf
                 @if ($errors->any())
@@ -87,7 +101,7 @@
                 </div>
 
                 <button type="submit" class="w-full bg-rose-900 hover:bg-rose-800 text-white font-semibold py-2.5 rounded-lg shadow-md transition duration-200 text-sm">
-                    Registrar Cuenta e Iniciar Expediente
+                    Registrar Cuenta e Iniciar Sesión
                 </button>
             </form>
 
@@ -99,8 +113,5 @@
             </div>
         </div>
 
-        <div class="mt-6 text-center">
-            <a href="/" class="text-xs text-gray-500 hover:text-gray-800">&larr; Volver al catálogo de convocatorias</a>
-        </div>
     </div>
 @endsection

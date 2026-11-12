@@ -3,7 +3,7 @@
         <a href="{{ url('/') }}" class="flex min-w-0 items-center gap-3">
             <img src="https://dev.matamoros.tecnm.mx/tecnm_itm/sitio/drive/logo-del-tec-guindo-289x300.png"
                 alt="Logotipo del Instituto Tecnológico de Matamoros"
-                class="navbar-logo h-11 w-auto shrink-0 object-contain sm:h-14">
+                class="h-11 w-auto shrink-0 object-contain sm:h-14">
             <span class="min-w-0">
                 <span class="block text-sm font-bold leading-tight sm:text-base">Sistema de Convocatorias</span>
                 <span class="hidden text-xs text-slate-300 sm:block">Instituto Tecnológico de Matamoros</span>
@@ -11,8 +11,8 @@
         </a>
 
         <div class="flex items-center gap-2">
-            <nav aria-label="Navegación principal" class="hidden items-center gap-1 md:flex">
-                @auth
+            @auth
+                <nav aria-label="Navegación principal" class="hidden items-center gap-1 md:flex">
                     <a href="{{ route('dashboard') }}"
                         class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Panel</a>
                     @if (auth()->user()->isAdmin())
@@ -32,24 +32,8 @@
                         <a href="{{ route('postulaciones.index') }}"
                             class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Mis postulaciones</a>
                     @endif
-                @else
-                    <a href="{{ route('home') }}#convocatorias"
-                        data-public-convocatorias-link
-                        class="rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Convocatorias</a>
-                    <a href="{{ route('login') }}"
-                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-950/25 transition hover:bg-indigo-400">
-                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-4-4 4-5-4-5m4 5H3" />
-                        </svg>
-                        Iniciar sesión
-                    </a>
-                    <a href="{{ route('register') }}"
-                        class="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-950/25 transition hover:bg-indigo-400">
-                        Registro
-                    </a>
-                @endauth
-            </nav>
+                </nav>
+            @endauth
 
             @auth
                 <div class="relative" data-notifications-menu>
@@ -202,33 +186,26 @@
                         </div>
                     </div>
                 </div>
-            @else
-                <a href="{{ route('login') }}"
-                    class="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-950/25 transition hover:bg-indigo-400 md:hidden">
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                            d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4m-4-4 4-5-4-5m4 5H3" />
-                    </svg>
-                    Ingresar
-                </a>
             @endauth
 
-            <button type="button" data-navbar-toggle aria-controls="mobile-navigation" aria-expanded="false"
-                aria-label="Abrir menú de navegación"
-                class="inline-flex items-center justify-center rounded-lg p-2 text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 md:hidden">
-                <svg data-menu-icon class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-                <svg data-close-icon class="hidden h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-            </button>
+            @auth
+                <button type="button" data-navbar-toggle aria-controls="mobile-navigation" aria-expanded="false"
+                    aria-label="Abrir menú de navegación"
+                    class="inline-flex items-center justify-center rounded-lg p-2 text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 md:hidden">
+                    <svg data-menu-icon class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                    <svg data-close-icon class="hidden h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            @endauth
         </div>
     </div>
 
-    <nav id="mobile-navigation" data-navbar-menu aria-label="Navegación móvil"
-        class="hidden border-t border-slate-800 px-4 pb-4 pt-2 md:hidden">
-        @auth
+    @auth
+        <nav id="mobile-navigation" data-navbar-menu aria-label="Navegación móvil"
+            class="hidden border-t border-slate-800 px-4 pb-4 pt-2 md:hidden">
             <a href="{{ route('dashboard') }}"
                 class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Mi panel</a>
             @if (auth()->user()->isAdmin())
@@ -248,14 +225,6 @@
                 <a href="{{ route('postulaciones.index') }}"
                     class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Mis postulaciones</a>
             @endif
-        @else
-            <a href="{{ route('home') }}#convocatorias"
-                data-public-convocatorias-link
-                class="block rounded-lg px-3 py-2 text-sm transition hover:bg-slate-800">Convocatorias</a>
-            <a href="{{ route('register') }}"
-                class="mt-1 inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-white shadow-md transition hover:bg-indigo-400">
-                Crear cuenta
-            </a>
-        @endauth
-    </nav>
+        </nav>
+    @endauth
 </header>

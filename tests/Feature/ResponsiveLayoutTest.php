@@ -12,15 +12,27 @@ class ResponsiveLayoutTest extends TestCase
 
     public function test_public_views_use_the_shared_responsive_layout(): void
     {
-        foreach (['/', '/login', '/registro'] as $path) {
+        $this->get('/')
+            ->assertRedirect(route('login'));
+
+        foreach (['/login', '/registro', '/convocatorias'] as $path) {
             $response = $this->get($path);
 
             $response->assertOk()
-                ->assertSee('data-navbar-toggle', false)
-                ->assertSee('id="mobile-navigation"', false)
-                ->assertSee('data-public-convocatorias-link', false)
+                ->assertDontSee('data-navbar-toggle', false)
+                ->assertDontSee('data-navbar-menu', false)
+                ->assertDontSee('data-public-convocatorias-link', false)
                 ->assertSee('aria-label="Enlaces del sitio"', false);
         }
+    }
+
+    public function test_registration_page_offers_a_back_arrow_to_login(): void
+    {
+        $this->get(route('register'))
+            ->assertOk()
+            ->assertSee('href="'.route('login').'"', false)
+            ->assertSee('aria-label="Volver al inicio de sesión"', false)
+            ->assertDontSee('Volver al catálogo de convocatorias');
     }
 
     public function test_dashboard_uses_the_shared_responsive_layout(): void
