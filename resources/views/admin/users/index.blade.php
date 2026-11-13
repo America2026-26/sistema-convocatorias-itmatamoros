@@ -1,50 +1,56 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center mb-6 border-b pb-4">
+<div class="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-xl shadow-slate-200/50">
+    <div class="flex justify-between items-center mb-6">
         <div>
-            <h2 class="text-2xl font-bold text-slate-800">Panel de Administración - Usuarios y Aspirantes</h2>
-            <p class="text-sm text-slate-500">Gestión completa de registros, roles y accesos del sistema institucional.</p>
+            <h3 class="font-bold text-xl text-slate-800">Lista de Cuentas y Usuarios</h3>
+            <p class="text-slate-500 text-sm">Administra los accesos de aspirantes, dictaminadores y administradores.</p>
         </div>
+        <a href="{{ route('admin.users.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-blue-500/30 transition-all flex items-center gap-2">
+            <i class="fas fa-plus text-xs"></i> Crear Usuario
+        </a>
     </div>
 
     @if(session('success'))
-        <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-xl text-sm">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-4">
             {{ session('success') }}
         </div>
     @endif
 
-    <div class="bg-white shadow-sm rounded-2xl border border-slate-200 overflow-hidden">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-600 font-semibold">
-                <tr>
-                    <th class="px-6 py-3 text-left">ID</th>
-                    <th class="px-6 py-3 text-left">Nombre</th>
-                    <th class="px-6 py-3 text-left">Email</th>
-                    <th class="px-6 py-3 text-left">Tipo / Rol</th>
-                    <th class="px-6 py-3 text-right">Acciones</th>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="text-[12px] uppercase text-slate-400 border-b border-slate-100">
+                    <th class="py-4 px-4 font-bold tracking-widest">ID</th>
+                    <th class="py-4 px-4 font-bold tracking-widest">Nombre</th>
+                    <th class="py-4 px-4 font-bold tracking-widest">Correo Electrónico</th>
+                    <th class="py-4 px-4 font-bold tracking-widest">Tipo / Rol</th>
+                    <th class="py-4 px-4 font-bold tracking-widest text-right">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200 bg-white">
-                @foreach($users as $user)
-                    <tr>
-                        <td class="px-6 py-4 text-slate-700 font-medium">#{{ $user->id }}</td>
-                        <td class="px-6 py-4 text-slate-900 font-semibold">{{ $user->name }}</td>
-                        <td class="px-6 py-4 text-slate-600">{{ $user->email }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ $user->role === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700' }}">
-                                {{ strtoupper($user->role) }}
+            <tbody class="divide-y divide-slate-100">
+                @foreach ($usuarios as $usuario)
+                    <tr class="group hover:bg-slate-50/50 transition-colors">
+                        <td class="py-4 px-4 font-bold text-slate-700">#{{ $usuario->id }}</td>
+                        <td class="py-4 px-4 text-slate-700 font-semibold">{{ $usuario->name ?? $usuario->nombre }}</td>
+                        <td class="py-4 px-4 text-slate-500 font-mono text-xs">{{ $usuario->email }}</td>
+                        <td class="py-4 px-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold 
+                                @if($usuario->role === 'admin') bg-purple-100 text-purple-700 
+                                @elseif($usuario->role === 'reviewer') bg-amber-100 text-amber-700 
+                                @else bg-blue-100 text-blue-700 @endif">
+                                {{ strtoupper($usuario->role ?? 'USUARIO') }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-right space-x-2">
-                            <a href="{{ route('admin.users.edit', $user->id) }}" class="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition">
+                        <td class="py-4 px-4 text-right space-x-2">
+                            <a href="{{ route('admin.users.edit', $usuario->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm">
                                 Editar
                             </a>
-                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirm('¿Estás seguro de eliminar este usuario?');">
+                            <form action="{{ route('admin.users.destroy', $usuario->id) }}" method="POST" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg hover:bg-red-700 transition">
+                                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm" onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
                                     Eliminar
                                 </button>
                             </form>

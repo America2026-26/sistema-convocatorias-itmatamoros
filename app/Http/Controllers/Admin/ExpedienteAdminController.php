@@ -11,10 +11,8 @@ class ExpedienteAdminController extends Controller
 {
     public function index()
     {
-        // Obtener todos los usuarios que tienen expedientes o postulaciones (aspirantes)
-        $aspirantes = User::with('documentosExpediente', 'postulaciones')
-            ->has('documentosExpediente') // Opcional: solo los que hayan subido algo
-            ->get();
+        // Obtenemos todos los usuarios registrados en el sistema
+        $aspirantes = User::all();
 
         return view('admin.expedientes.index', compact('aspirantes'));
     }

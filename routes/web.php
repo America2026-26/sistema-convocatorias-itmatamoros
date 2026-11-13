@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuditLogController;
-use App\Http\Controllers\Admin\AdminExpedienteController;
+use App\Http\Controllers\Admin\ExpedienteAdminController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\ConvocatoriaPublicController;
@@ -118,8 +118,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
         
         // Gestión de Expedientes Digitales
-        Route::get('/expedientes', [AdminExpedienteController::class, 'index'])->name('expedientes.index');
-        Route::post('/expedientes/{id}/estatus', [AdminExpedienteController::class, 'actualizarEstatus'])->name('expedientes.estatus');
+        Route::get('/expedientes', [ExpedienteAdminController::class, 'index'])->name('expedientes.index');
+        Route::post('/expedientes/{id}/estatus', [ExpedienteAdminController::class, 'actualizarEstatus'])->name('expedientes.estatus');
     });
 
     // Panel de Dictaminadores
