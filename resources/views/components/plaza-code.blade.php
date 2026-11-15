@@ -29,16 +29,32 @@
 
     $status = array_key_exists($status, $plazaStatuses) ? $status : 'none';
     $plazaStatus = $plazaStatuses[$status];
+    $focusRingClass = $status === 'available' ? 'focus:ring-emerald-500' : 'focus:ring-amber-500';
 @endphp
 
-<span
-    {{ $attributes->merge([
-        'class' => 'inline-flex items-center justify-center rounded-lg border px-2.5 py-1 font-mono text-sm '.$plazaStatus['classes'],
-    ]) }}
-    data-plaza-code="{{ $code }}"
-    data-plaza-status="{{ $status }}"
-    title="{{ $plazaStatus['label'] }}"
-    aria-label="Plaza {{ $code }}: {{ $plazaStatus['label'] }}"
->
-    {{ $code }}
-</span>
+@if (in_array($status, ['upcoming', 'available'], true))
+    <a
+        href="{{ route('home', ['plaza' => $code]) }}#convocatorias"
+        {{ $attributes->merge([
+            'class' => 'inline-flex cursor-pointer items-center justify-center rounded-lg border px-2.5 py-1 font-mono text-sm transition hover:brightness-95 focus:outline-none focus:ring-2 '.$focusRingClass.' focus:ring-offset-2 '.$plazaStatus['classes'],
+        ]) }}
+        data-plaza-code="{{ $code }}"
+        data-plaza-status="{{ $status }}"
+        title="{{ $plazaStatus['label'] }}. Ver convocatorias relacionadas."
+        aria-label="Plaza {{ $code }}: {{ $plazaStatus['label'] }}"
+    >
+        {{ $code }}
+    </a>
+@else
+    <span
+        {{ $attributes->merge([
+            'class' => 'inline-flex items-center justify-center rounded-lg border px-2.5 py-1 font-mono text-sm '.$plazaStatus['classes'],
+        ]) }}
+        data-plaza-code="{{ $code }}"
+        data-plaza-status="{{ $status }}"
+        title="{{ $plazaStatus['label'] }}"
+        aria-label="Plaza {{ $code }}: {{ $plazaStatus['label'] }}"
+    >
+        {{ $code }}
+    </span>
+@endif

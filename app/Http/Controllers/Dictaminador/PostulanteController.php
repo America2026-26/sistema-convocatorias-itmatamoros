@@ -7,14 +7,14 @@ use App\Models\AuditLog;
 use App\Models\Convocatoria;
 use App\Models\Postulacion;
 use App\Notifications\PostulacionActualizada;
+use App\Services\OneDriveDocumentStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class PostulanteController extends Controller
 {
@@ -122,17 +122,16 @@ class PostulanteController extends Controller
             ->with('status', 'El dictamen fue guardado y se notificó al usuario.');
     }
 
-    public function document(Postulacion $postulacion): BinaryFileResponse
-    {
+    public function document(
+        Postulacion $postulacion,
+        OneDriveDocumentStorage $documentStorage,
+    ): Response {
         abort_unless($postulacion->documento_path, 404);
 
-        $disk = Storage::disk('local');
-        abort_unless($disk->exists($postulacion->documento_path), 404);
-
-        return response()->file($disk->path($postulacion->documento_path), [
-            'Content-Type' => 'application/pdf',
-            'X-Content-Type-Options' => 'nosniff',
-            'Content-Disposition' => 'inline; filename="expediente-'.$postulacion->id.'.pdf"',
-        ]);
+        return $documentStorage->response(
+            $postulacion->documento_storage_disk,
+            $postulacion->documento_path,
+            'expediente-'.$postulacion->id.'.pdf',
+        );
     }
 }

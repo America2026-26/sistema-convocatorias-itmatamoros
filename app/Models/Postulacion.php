@@ -16,10 +16,17 @@ class Postulacion extends Model
 
     public const STATUS_REJECTED = 'rechazada';
 
+    public const STATUS_RETURNED = 'devuelta';
+
+    public const DOCUMENT_STORAGE_DISK_LOCAL = 'local';
+
+    public const DOCUMENT_STORAGE_DISK_ONEDRIVE = 'onedrive';
+
     public const STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_APPROVED,
         self::STATUS_REJECTED,
+        self::STATUS_RETURNED,
     ];
 
     protected $fillable = [
@@ -28,6 +35,7 @@ class Postulacion extends Model
         'estatus',
         'informacion',
         'documento_path',
+        'documento_storage_disk',
         'revisado_por',
         'revisado_en',
         'comentarios_revision',

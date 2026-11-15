@@ -4,11 +4,9 @@
 
 @section('content')
     <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <a href="{{ route('notifications.index') }}"
-            class="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-rose-900 hover:underline">
-            <span aria-hidden="true">&larr;</span>
-            Volver a notificaciones
-        </a>
+        <div class="mb-5">
+            <x-back-button href="{{ route('notifications.index') }}" label="Volver a notificaciones" />
+        </div>
 
         <article class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <header class="border-b border-gray-100 bg-gray-50 px-6 py-5">

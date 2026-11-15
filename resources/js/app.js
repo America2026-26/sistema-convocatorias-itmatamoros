@@ -1,3 +1,5 @@
+import './calendario.js';
+
 const menuToggle = document.querySelector('[data-navbar-toggle]');
 const mobileMenu = document.querySelector('[data-navbar-menu]');
 
@@ -507,3 +509,158 @@ if (photoModal) {
         photoEmpty?.classList.add('hidden');
     }
 }
+
+document.querySelectorAll('[data-pdf-viewer]').forEach((pdfViewer) => {
+    const pdfFrame = pdfViewer.querySelector('[data-pdf-frame]');
+    const previewPanel = pdfViewer.querySelector('[data-pdf-preview]');
+    const placeholder = pdfViewer.querySelector('[data-pdf-placeholder]');
+    const pdfTitle = pdfViewer.querySelector('[data-pdf-current-title]');
+    const openPdfLink = pdfViewer.querySelector('[data-pdf-open-new-tab]');
+    const pdfStatus = pdfViewer.querySelector('[data-pdf-viewer-status]');
+
+    const setPdfStatus = (message) => {
+        if (!(pdfStatus instanceof HTMLElement)) {
+            return;
+        }
+
+        pdfStatus.textContent = message;
+        pdfStatus.classList.toggle('hidden', message === '');
+    };
+
+    const setToggleButtonState = (button, isExpanded) => {
+        button.setAttribute('aria-expanded', String(isExpanded));
+        button.setAttribute(
+            'aria-label',
+            `${isExpanded ? 'Ocultar' : 'Mostrar'} PDF: ${button.dataset.pdfTitle ?? 'documento'}`,
+        );
+        button.classList.toggle('border-rose-300', isExpanded);
+        button.classList.toggle('bg-rose-50', isExpanded);
+        button.classList.toggle('text-rose-900', isExpanded);
+        button.classList.toggle('border-gray-200', !isExpanded);
+        button.classList.toggle('bg-white', !isExpanded);
+        button.classList.toggle('text-gray-700', !isExpanded);
+
+        const label = button.querySelector('[data-pdf-toggle-label]');
+        const chevron = button.querySelector('[data-pdf-toggle-chevron]');
+
+        if (label instanceof HTMLElement) {
+            label.textContent = isExpanded ? 'Ocultar' : 'Ver PDF';
+        }
+
+        chevron?.classList.toggle('rotate-180', isExpanded);
+    };
+
+    const hidePdf = () => {
+        if (pdfFrame instanceof HTMLIFrameElement) {
+            pdfFrame.removeAttribute('src');
+        }
+
+        previewPanel?.classList.add('hidden');
+        placeholder?.classList.remove('hidden');
+
+        pdfViewer.querySelectorAll('[data-pdf-viewer-toggle]').forEach((button) => {
+            if (button instanceof HTMLButtonElement) {
+                setToggleButtonState(button, false);
+            }
+        });
+
+        if (openPdfLink instanceof HTMLAnchorElement) {
+            openPdfLink.href = '#';
+        }
+
+        if (pdfTitle instanceof HTMLElement) {
+            pdfTitle.textContent = '';
+        }
+
+        setPdfStatus('');
+    };
+
+    pdfViewer.addEventListener('click', async (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
+        const toggleButton = event.target.closest('[data-pdf-viewer-toggle]');
+
+        if (toggleButton instanceof HTMLButtonElement) {
+            const pdfUrl = toggleButton.dataset.pdfUrl;
+            const title = toggleButton.dataset.pdfTitle;
+            const controlledPanel = toggleButton.getAttribute('aria-controls');
+
+            if (
+                !(pdfFrame instanceof HTMLIFrameElement)
+                || !(previewPanel instanceof HTMLElement)
+                || !(placeholder instanceof HTMLElement)
+                || !(openPdfLink instanceof HTMLAnchorElement)
+                || !(pdfTitle instanceof HTMLElement)
+                || !pdfUrl
+                || !title
+                || controlledPanel !== previewPanel.id
+            ) {
+                setPdfStatus('No se pudo cargar el documento seleccionado.');
+                return;
+            }
+
+            if (toggleButton.getAttribute('aria-expanded') === 'true') {
+                hidePdf();
+
+                return;
+            }
+
+            pdfFrame.src = pdfUrl;
+            pdfFrame.title = `PDF: ${title}`;
+            openPdfLink.href = pdfUrl;
+            pdfTitle.textContent = title;
+            previewPanel.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+
+            pdfViewer.querySelectorAll('[data-pdf-viewer-toggle]').forEach((button) => {
+                if (!(button instanceof HTMLButtonElement)) {
+                    return;
+                }
+
+                setToggleButtonState(button, button === toggleButton);
+            });
+
+            setPdfStatus('');
+
+            return;
+        }
+
+        if (event.target.closest('[data-pdf-hide]')) {
+            hidePdf();
+
+            return;
+        }
+
+        const fullscreenButton = event.target.closest('[data-pdf-fullscreen]');
+
+        if (!(fullscreenButton instanceof HTMLButtonElement)) {
+            return;
+        }
+
+        const fullscreenFrameId = fullscreenButton.dataset.pdfFullscreen;
+        const fullscreenFrame = fullscreenFrameId
+            ? document.getElementById(fullscreenFrameId)
+            : null;
+
+        if (!(fullscreenFrame instanceof HTMLIFrameElement) || fullscreenFrame !== pdfFrame) {
+            setPdfStatus('No se encontró el visor para abrirlo en pantalla completa.');
+
+            return;
+        }
+
+        if (typeof fullscreenFrame.requestFullscreen !== 'function') {
+            setPdfStatus('Este navegador no permite mostrar el documento en pantalla completa.');
+
+            return;
+        }
+
+        try {
+            await fullscreenFrame.requestFullscreen();
+            setPdfStatus('');
+        } catch {
+            setPdfStatus('El navegador no permitió abrir el documento en pantalla completa.');
+        }
+    });
+});

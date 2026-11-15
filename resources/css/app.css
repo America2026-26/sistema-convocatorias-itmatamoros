@@ -18,6 +18,21 @@
     color: #fff;
 }
 
+@keyframes convocatoria-highlight {
+    0%, 100% {
+        outline: 0 solid rgb(245 158 11 / 0);
+    }
+
+    20%, 80% {
+        outline: 4px solid rgb(245 158 11 / 0.9);
+        outline-offset: 3px;
+    }
+}
+
+.animate-convocatoria-highlight {
+    animation: convocatoria-highlight 1s ease-in-out;
+}
+
 html[data-theme='dark'] .brand-surface .text-white {
     color: #fff;
 }

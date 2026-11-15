@@ -46,11 +46,16 @@
                 <p class="mt-1 text-sm text-gray-600">Accede a las tareas principales de control del sistema.</p>
             </div>
 
-            <div class="grid gap-4 md:grid-cols-2">
+            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <a href="{{ route('admin.users.index') }}" class="group rounded-xl border border-gray-200 p-5 transition hover:-translate-y-0.5 hover:border-rose-300 hover:shadow-sm">
                     <span class="inline-flex rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-900">Cuentas</span>
                     <h3 class="mt-3 font-bold text-gray-950 group-hover:text-rose-900">Administrar cuentas</h3>
                     <p class="mt-1 text-sm leading-6 text-gray-600">Crear, editar y gestionar las cuentas de usuarios, dictaminadores y administradores.</p>
+                </a>
+                <a href="{{ route('admin.postulaciones.index') }}" class="group rounded-xl border border-gray-200 p-5 transition hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-sm">
+                    <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-900">Expedientes</span>
+                    <h3 class="mt-3 font-bold text-gray-950 group-hover:text-amber-900">Revisar expedientes</h3>
+                    <p class="mt-1 text-sm leading-6 text-gray-600">Consulta documentos por usuario y devuélvelos para correcciones antes del dictamen.</p>
                 </a>
                 <a href="{{ route('admin.audit-logs.index') }}" class="group rounded-xl border border-gray-200 p-5 transition hover:-translate-y-0.5 hover:border-rose-300 hover:shadow-sm">
                     <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">Actividad</span>

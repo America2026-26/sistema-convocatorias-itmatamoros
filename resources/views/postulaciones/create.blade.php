@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <a href="{{ route('convocatorias.show', $convocatoria) }}" class="text-sm font-semibold text-rose-900 hover:underline">&larr; Volver a la convocatoria</a>
+        <x-back-button href="{{ route('convocatorias.show', $convocatoria) }}" label="Volver a la convocatoria" />
         <h1 class="mt-4 text-2xl font-bold text-gray-900">Documentación para postular</h1>
         <p class="mt-2 text-gray-600">{{ $convocatoria->titulo }} · {{ $convocatoria->tipo_personal }} · Concurso {{ strtolower($convocatoria->tipo_concurso) }}</p>
         <p class="mt-2 text-sm text-gray-600">Adjunta un archivo PDF por cada requisito. Cada documento puede pesar hasta 10 MB.</p>

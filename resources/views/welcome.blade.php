@@ -46,11 +46,14 @@
                     <option value="No docente" @selected($filters['tipo_personal'] === 'No docente')>No docente</option>
                 </select>
             </div>
+            @if ($highlightedPlaza !== null)
+                <input type="hidden" name="plaza" value="{{ $highlightedPlaza }}">
+            @endif
             <button type="submit"
                 class="rounded-lg bg-rose-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-800">
                 Aplicar filtros
             </button>
-            @if ($filters['tipo_concurso'] !== '' || $filters['tipo_personal'] !== '')
+            @if ($filters['tipo_concurso'] !== '' || $filters['tipo_personal'] !== '' || $highlightedPlaza !== null)
                 <a href="{{ route('home') }}#convocatorias"
                     class="rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
                     Limpiar
@@ -60,8 +63,13 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             @foreach($convocatorias as $convocatoria)
-                <div
-                    class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition duration-200 flex flex-col justify-between">
+                @php($postulacionEnviada = $convocatoria->postulaciones->first())
+                <div id="convocatoria-{{ $convocatoria->id }}" @class([
+                    'flex flex-col justify-between overflow-hidden rounded-xl border shadow-md transition duration-200',
+                    'border-emerald-300 bg-emerald-50/70 hover:shadow-lg' => $postulacionEnviada,
+                    'border-gray-200 bg-white hover:shadow-lg' => ! $postulacionEnviada,
+                    'animate-convocatoria-highlight' => $highlightedPlaza !== null,
+                ])>
                     <!-- Cabecera de la tarjeta -->
                     <div class="p-6">
                         <div class="flex justify-between items-start gap-2 mb-3">
@@ -82,12 +90,20 @@
                     </div>
 
                     <!-- Botón de acción en Guinda -->
-                    <div class="bg-gray-50 px-6 py-3 border-t border-gray-100 flex justify-between items-center">
+                    <div @class([
+                        'flex items-center justify-between border-t px-6 py-3',
+                        'border-emerald-200 bg-emerald-100/70' => $postulacionEnviada,
+                        'border-gray-100 bg-gray-50' => ! $postulacionEnviada,
+                    ])>
                         <a href="{{ route('convocatorias.show', $convocatoria) }}"
                             class="text-xs font-semibold text-rose-900 hover:text-rose-700">Ver bases completas &rarr;</a>
-                        <a href="{{ route('convocatorias.show', $convocatoria) }}"
-                            class="bg-rose-900 hover:bg-rose-800 text-white font-medium text-xs px-4 py-2 rounded-lg shadow transition">
-                            Ver convocatoria
+                        <a href="{{ $postulacionEnviada ? route('postulaciones.show', $postulacionEnviada) : route('convocatorias.show', $convocatoria) }}"
+                            @class([
+                                'rounded-lg px-4 py-2 text-xs font-medium text-white shadow transition',
+                                'bg-emerald-700 hover:bg-emerald-800' => $postulacionEnviada,
+                                'bg-rose-900 hover:bg-rose-800' => ! $postulacionEnviada,
+                            ])>
+                            {{ $postulacionEnviada ? 'Ver postulación' : 'Ver convocatoria' }}
                         </a>
                     </div>
                 </div>

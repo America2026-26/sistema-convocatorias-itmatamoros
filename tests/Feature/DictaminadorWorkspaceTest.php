@@ -85,6 +85,7 @@ class DictaminadorWorkspaceTest extends TestCase
         $this->actingAs($reviewer)
             ->get(route('dictaminador.convocatorias.create'))
             ->assertOk()
+            ->assertSee('aria-label="Volver a convocatorias"', false)
             ->assertSee('<select id="tipo_personal"', false)
             ->assertSee('<option value="Docente"', false)
             ->assertSee('<option value="No docente"', false)
@@ -100,6 +101,7 @@ class DictaminadorWorkspaceTest extends TestCase
                 'tipo_concurso' => 'Abierta',
             ]))
             ->assertOk()
+            ->assertSee('aria-label="Cambiar tipo de convocatoria"', false)
             ->assertSee('Área o materia')
             ->assertSee('Perfil académico')
             ->assertSee('Documentación obligatoria');
@@ -135,6 +137,110 @@ class DictaminadorWorkspaceTest extends TestCase
             ->assertSessionHasErrors('tipo_personal');
 
         $this->assertDatabaseCount('convocatorias', 0);
+    }
+
+    public function test_active_unexpired_convocatorias_reserve_plazas_when_creating_or_editing(): void
+    {
+        $reviewer = User::factory()->create(['role' => User::ROLE_REVIEWER]);
+        $this->createConvocatoria([
+            'titulo' => 'Convocatoria que reserva plaza',
+            'detalles_especificos' => [
+                ...$this->convocatoriaData()['detalles'],
+                'plazas_seleccionadas' => ['E3617'],
+            ],
+        ]);
+        $convocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria en edición',
+            'detalles_especificos' => [
+                ...$this->convocatoriaData()['detalles'],
+                'plazas_seleccionadas' => ['E3717'],
+            ],
+        ]);
+
+        $createResponse = $this->actingAs($reviewer)
+            ->get(route('dictaminador.convocatorias.create', [
+                'tipo_personal' => 'Docente',
+                'tipo_concurso' => 'Abierta',
+            ]))
+            ->assertOk()
+            ->assertSee('value="E3617"', false)
+            ->assertSee('value="E3717"', false);
+        $this->assertSame(
+            1,
+            preg_match(
+                '/value="E3617"\s+disabled\b/',
+                (string) $createResponse->getContent(),
+            ),
+        );
+
+        $editResponse = $this->get(route('dictaminador.convocatorias.edit', $convocatoria))
+            ->assertOk()
+            ->assertSee('aria-label="Volver a convocatorias"', false);
+        $this->assertSame(
+            1,
+            preg_match(
+                '/<input[^>]*value="E3617"\s+disabled\b/',
+                (string) $editResponse->getContent(),
+            ),
+        );
+        $this->assertSame(
+            1,
+            preg_match(
+                '/<input[^>]*value="E3717"\s+checked\b/',
+                (string) $editResponse->getContent(),
+            ),
+        );
+
+        $data = $this->convocatoriaData();
+        $data['detalles']['plazas_seleccionadas'] = ['E3617'];
+
+        $this->post(route('dictaminador.convocatorias.store'), $data)
+            ->assertSessionHasErrors([
+                'detalles.plazas_seleccionadas.0' => 'La plaza seleccionada (E3617) ya está asignada a otra convocatoria vigente.',
+            ]);
+
+        $this->put(route('dictaminador.convocatorias.update', $convocatoria), $data)
+            ->assertSessionHasErrors([
+                'detalles.plazas_seleccionadas.0' => 'La plaza seleccionada (E3617) ya está asignada a otra convocatoria vigente.',
+            ]);
+
+        $this->assertDatabaseCount('convocatorias', 2);
+        $this->assertSame(['E3717'], $convocatoria->refresh()->detalles_especificos['plazas_seleccionadas']);
+    }
+
+    public function test_plaza_can_be_reused_after_its_convocatoria_is_inactive_expired_or_deleted(): void
+    {
+        $reviewer = User::factory()->create(['role' => User::ROLE_REVIEWER]);
+        $details = [
+            ...$this->convocatoriaData()['detalles'],
+            'plazas_seleccionadas' => ['E3617'],
+        ];
+
+        $this->createConvocatoria([
+            'titulo' => 'Convocatoria inactiva',
+            'estatus' => 'Borrador',
+            'detalles_especificos' => $details,
+        ]);
+        $this->createConvocatoria([
+            'titulo' => 'Convocatoria expirada',
+            'fecha_fin' => today()->subDay()->toDateString(),
+            'detalles_especificos' => $details,
+        ]);
+        $deletedConvocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria eliminada',
+            'detalles_especificos' => $details,
+        ]);
+        $deletedConvocatoria->delete();
+
+        $this->actingAs($reviewer)
+            ->post(route('dictaminador.convocatorias.store'), $this->convocatoriaData())
+            ->assertRedirect(route('dictaminador.convocatorias.index'));
+
+        $this->assertDatabaseHas('convocatorias', [
+            'titulo' => 'Convocatoria de prueba',
+            'estatus' => 'Activa',
+        ]);
+        $this->assertDatabaseCount('convocatorias', 3);
     }
 
     #[DataProvider('convocatoriaVariants')]
@@ -412,7 +518,9 @@ class DictaminadorWorkspaceTest extends TestCase
             'user_id' => $applicant->id,
         ]);
         $this->assertCount(count($documentKeys), $postulacion->documentos);
+
         foreach ($postulacion->documentos as $documento) {
+            $this->assertSame('local', $documento->storage_disk);
             Storage::disk('local')->assertExists($documento->path);
         }
         $this->assertDatabaseHas('notifications', [
@@ -420,17 +528,42 @@ class DictaminadorWorkspaceTest extends TestCase
             'type' => 'App\\Notifications\\NuevaPostulacion',
         ]);
 
-        $this->actingAs($applicant)
+        $expedienteResponse = $this->actingAs($applicant)
             ->get(route('postulaciones.show', $postulacion))
             ->assertOk()
             ->assertSee('Experiencia docente de cinco años.')
-            ->assertSee('Currículum Vitae documentado en PDF');
+            ->assertSee('Información adicional')
+            ->assertSee('Información compartida')
+            ->assertSee('Documentación enviada')
+            ->assertSee('data-pdf-viewer', false)
+            ->assertSee('aria-expanded="false"', false)
+            ->assertSee('<iframe', false)
+            ->assertSee('title="Visor de PDF"', false)
+            ->assertSee('Abrir en pestaña nueva')
+            ->assertSee('Pantalla completa');
+        $this->assertSame(
+            0,
+            preg_match('/<iframe\b[^>]*\bsrc=/s', (string) $expedienteResponse->getContent()),
+        );
+
+        foreach ($convocatoria->applicantDocumentRequirements() as $requirement) {
+            $expedienteResponse->assertSee($requirement['label']);
+        }
+
+        foreach ($postulacion->documentos as $documento) {
+            $expedienteResponse->assertSee(
+                route('postulaciones.documento-requerido', [$postulacion, $documento]),
+                false,
+            );
+        }
 
         $documento = $postulacion->documentos->firstOrFail();
         $this->actingAs($applicant)
             ->get(route('postulaciones.documento-requerido', [$postulacion, $documento]))
             ->assertOk()
-            ->assertHeader('content-type', 'application/pdf');
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertHeader('content-disposition', 'inline; filename="documento-'.$documento->id.'.pdf"')
+            ->assertHeader('cache-control', 'no-store, private');
         $otherApplicant = User::factory()->create(['role' => User::ROLE_USER]);
         $this->actingAs($otherApplicant)
             ->get(route('postulaciones.show', $postulacion))
@@ -450,11 +583,28 @@ class DictaminadorWorkspaceTest extends TestCase
             ->get(route('dictaminador.postulantes.required-document', [$postulacion, $documento]))
             ->assertOk()
             ->assertHeader('content-type', 'application/pdf');
-        $this->actingAs($reviewer)
+        $reviewerResponse = $this->actingAs($reviewer)
             ->get(route('dictaminador.postulantes.show', $postulacion))
             ->assertOk()
             ->assertSee('Documentación entregada')
             ->assertSee('Currículum Vitae documentado en PDF');
+
+        foreach ($postulacion->documentos as $documento) {
+            $reviewerResponse->assertSee(
+                'data-pdf-url="'.route('dictaminador.postulantes.required-document', [$postulacion, $documento]).'"',
+                false,
+            );
+        }
+
+        $reviewerResponse
+            ->assertSee('<iframe', false)
+            ->assertSee('title="Visor de PDF"', false)
+            ->assertSee('Abrir en pestaña nueva')
+            ->assertSee('Pantalla completa');
+        $this->assertSame(
+            0,
+            preg_match('/<iframe\b[^>]*\bsrc=/s', (string) $reviewerResponse->getContent()),
+        );
 
         $this->actingAs($reviewer)
             ->patch(route('dictaminador.postulantes.review', $postulacion), [
@@ -481,6 +631,44 @@ class DictaminadorWorkspaceTest extends TestCase
         $this->get(route('notifications.index'))
             ->assertOk()
             ->assertSee('Tu postulación a Convocatoria de prueba fue aprobada.');
+    }
+
+    public function test_reviewer_can_view_a_legacy_expedient_pdf_inline(): void
+    {
+        Storage::fake('local');
+        $applicant = User::factory()->create(['role' => User::ROLE_USER]);
+        $reviewer = User::factory()->create(['role' => User::ROLE_REVIEWER]);
+        $convocatoria = $this->createConvocatoria();
+        $path = UploadedFile::fake()
+            ->createWithContent('expediente.pdf', "%PDF-1.4\nExpediente de prueba\n%%EOF")
+            ->store('postulaciones/legacy', 'local');
+        $postulacion = Postulacion::query()->create([
+            'convocatoria_id' => $convocatoria->id,
+            'user_id' => $applicant->id,
+            'estatus' => Postulacion::STATUS_PENDING,
+            'documento_path' => $path,
+            'documento_storage_disk' => Postulacion::DOCUMENT_STORAGE_DISK_LOCAL,
+        ]);
+
+        $reviewerResponse = $this->actingAs($reviewer)
+            ->get(route('dictaminador.postulantes.show', $postulacion))
+            ->assertOk()
+            ->assertSee(
+                'data-pdf-url="'.route('dictaminador.postulantes.document', $postulacion).'"',
+                false,
+            )
+            ->assertSee('aria-expanded="false"', false)
+            ->assertSee('<iframe', false)
+            ->assertSee('title="Visor de PDF"', false);
+        $this->assertSame(
+            0,
+            preg_match('/<iframe\b[^>]*\bsrc=/s', (string) $reviewerResponse->getContent()),
+        );
+
+        $this->get(route('dictaminador.postulantes.document', $postulacion))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf')
+            ->assertHeader('content-disposition', 'inline; filename="expediente-'.$postulacion->id.'.pdf"');
     }
 
     #[DataProvider('applicantDocumentVariants')]
@@ -520,6 +708,7 @@ class DictaminadorWorkspaceTest extends TestCase
             $documento = $postulacion->documentos->firstWhere('clave', $documentKey);
             $this->assertNotNull($documento);
             $this->assertSame($requirements[$documentKey]['label'], $documento->nombre);
+            $this->assertSame('local', $documento->storage_disk);
             Storage::disk('local')->assertExists($documento->path);
         }
 
@@ -713,7 +902,10 @@ class DictaminadorWorkspaceTest extends TestCase
         $documents = [];
 
         foreach ($keys as $key) {
-            $documents[$key] = UploadedFile::fake()->create($key.'.pdf', 50, 'application/pdf');
+            $documents[$key] = UploadedFile::fake()->createWithContent(
+                $key.'.pdf',
+                "%PDF-1.4\nContenido de prueba\n%%EOF",
+            );
         }
 
         return $documents;

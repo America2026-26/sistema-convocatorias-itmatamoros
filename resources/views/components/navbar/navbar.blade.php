@@ -18,6 +18,8 @@
                     @if (auth()->user()->isAdmin())
                         <a href="{{ route('admin.users.index') }}"
                             class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Cuentas</a>
+                        <a href="{{ route('admin.postulaciones.index') }}"
+                            class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Expedientes</a>
                         <a href="{{ route('admin.audit-logs.index') }}"
                             class="rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Historial</a>
                     @elseif (auth()->user()->role === \App\Models\User::ROLE_REVIEWER)
@@ -100,7 +102,7 @@
                     </div>
                 </div>
 
-                <div class="relative" data-profile-menu>
+                <div class="relative flex items-center gap-2" data-profile-menu>
                     <button type="button" data-profile-toggle aria-controls="profile-menu" aria-expanded="false"
                         aria-label="Abrir menú del perfil"
                         class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/30 bg-white/10 text-white transition hover:border-white/50 hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-300">
@@ -114,6 +116,20 @@
                             </svg>
                         @endif
                     </button>
+                    @if (
+                        auth()->user()->role === \App\Models\User::ROLE_USER
+                        && auth()->user()->tipo_usuario === 'aspirante_docente'
+                        && filled(auth()->user()->plaza_jornada)
+                    )
+                        <div class="hidden min-w-0 items-center gap-2 lg:flex">
+                            <span class="max-w-[12rem] truncate text-xs text-white/80">
+                                {{ auth()->user()->name }}
+                            </span>
+                            <span class="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white">
+                                Plaza {{ auth()->user()->plaza_jornada }}
+                            </span>
+                        </div>
+                    @endif
                     <div id="profile-menu" data-profile-dropdown
                         class="absolute right-0 top-full z-50 mt-2 hidden w-64 overflow-hidden rounded-xl border border-gray-200 bg-white py-2 text-gray-800 shadow-xl">
                         <div class="border-b border-gray-100 px-4 pb-3 pt-2">
@@ -204,25 +220,6 @@
     </div>
 
     @auth
-        @if (
-            auth()->user()->role === \App\Models\User::ROLE_USER
-            && auth()->user()->tipo_usuario === 'aspirante_docente'
-            && filled(auth()->user()->plaza_jornada)
-        )
-            <div class="border-t border-white/15 bg-black/10">
-                <div class="mx-auto flex max-w-7xl items-center justify-end gap-2 px-4 py-2 sm:px-6 lg:px-8">
-                    <span class="max-w-[55vw] truncate text-xs text-white/80 sm:max-w-none">
-                        {{ auth()->user()->name }}
-                    </span>
-                    <span class="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white">
-                        Plaza {{ auth()->user()->plaza_jornada }}
-                    </span>
-                </div>
-            </div>
-        @endif
-    @endauth
-
-    @auth
         <nav id="mobile-navigation" data-navbar-menu aria-label="Navegación móvil"
             class="hidden border-t border-white/15 px-4 pb-4 pt-2 md:hidden">
             <a href="{{ route('dashboard') }}"
@@ -230,6 +227,8 @@
             @if (auth()->user()->isAdmin())
                 <a href="{{ route('admin.users.index') }}"
                     class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Cuentas</a>
+                <a href="{{ route('admin.postulaciones.index') }}"
+                    class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Expedientes</a>
                 <a href="{{ route('admin.audit-logs.index') }}"
                     class="block rounded-lg px-3 py-2 text-sm transition hover:bg-white/10">Historial</a>
             @elseif (auth()->user()->role === \App\Models\User::ROLE_REVIEWER)

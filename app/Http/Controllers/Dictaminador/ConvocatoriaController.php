@@ -40,7 +40,10 @@ class ConvocatoriaController extends Controller
             ]);
         }
 
-        return view('dictaminador.convocatorias.create', compact('selectedTypes'));
+        return view('dictaminador.convocatorias.create', [
+            'selectedTypes' => $selectedTypes,
+            'reservedPlazaCodes' => $this->reservedTeachingPlazaCodes(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -66,12 +69,15 @@ class ConvocatoriaController extends Controller
 
     public function edit(Convocatoria $convocatoria): View
     {
-        return view('dictaminador.convocatorias.edit', compact('convocatoria'));
+        return view('dictaminador.convocatorias.edit', [
+            'convocatoria' => $convocatoria,
+            'reservedPlazaCodes' => $this->reservedTeachingPlazaCodes($convocatoria),
+        ]);
     }
 
     public function update(Request $request, Convocatoria $convocatoria): RedirectResponse
     {
-        $data = $this->validatedData($request);
+        $data = $this->validatedData($request, $convocatoria);
         $actor = $request->user();
 
         DB::transaction(function () use ($data, $convocatoria, $actor): void {
@@ -116,30 +122,39 @@ class ConvocatoriaController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validatedData(Request $request): array
+    private function validatedData(Request $request, ?Convocatoria $convocatoria = null): array
     {
         $classification = $request->validate([
             'tipo_concurso' => ['required', Rule::in(['Abierta', 'Cerrada'])],
             'tipo_personal' => ['required', Rule::in(['Docente', 'No docente'])],
         ]);
-        $detailRules = $this->detailRules($classification['tipo_personal'], $classification['tipo_concurso']);
+        $detailRules = $this->detailRules(
+            $classification['tipo_personal'],
+            $classification['tipo_concurso'],
+            $this->reservedTeachingPlazaCodes($convocatoria),
+        );
         $allowedDetails = array_unique(array_map(
             static fn (string $attribute): string => explode('.', $attribute)[0],
             array_keys($detailRules),
         ));
 
-        $data = $request->validate([
-            'titulo' => ['required', 'string', 'max:255'],
-            'fecha_inicio' => ['required', 'date'],
-            'fecha_fin' => ['required', 'date', 'after_or_equal:fecha_inicio'],
-            'estatus' => ['required', Rule::in(['Activa', 'Borrador', 'Cerrada'])],
-            'requisitos_especificos' => ['nullable', 'string', 'max:10000'],
-            'detalles' => ['required', 'array:'.implode(',', $allowedDetails)],
-            ...array_combine(
-                array_map(static fn (string $attribute): string => 'detalles.'.$attribute, array_keys($detailRules)),
-                array_values($detailRules),
-            ),
-        ]);
+        $data = $request->validate(
+            [
+                'titulo' => ['required', 'string', 'max:255'],
+                'fecha_inicio' => ['required', 'date'],
+                'fecha_fin' => ['required', 'date', 'after_or_equal:fecha_inicio'],
+                'estatus' => ['required', Rule::in(['Activa', 'Borrador', 'Cerrada'])],
+                'requisitos_especificos' => ['nullable', 'string', 'max:10000'],
+                'detalles' => ['required', 'array:'.implode(',', $allowedDetails)],
+                ...array_combine(
+                    array_map(static fn (string $attribute): string => 'detalles.'.$attribute, array_keys($detailRules)),
+                    array_values($detailRules),
+                ),
+            ],
+            [
+                'detalles.plazas_seleccionadas.*.not_in' => 'La plaza seleccionada (:input) ya está asignada a otra convocatoria vigente.',
+            ],
+        );
         $details = $data['detalles'];
         unset($data['detalles']);
 
@@ -161,13 +176,22 @@ class ConvocatoriaController extends Controller
     /**
      * @return array<string, array<mixed>>
      */
-    private function detailRules(string $tipoPersonal, string $tipoConcurso): array
-    {
+    private function detailRules(
+        string $tipoPersonal,
+        string $tipoConcurso,
+        array $reservedPlazaCodes,
+    ): array {
         return match ([$tipoPersonal, $tipoConcurso]) {
             ['Docente', 'Abierta'] => [
                 'categoria_nivel' => ['required', 'string', 'max:150'],
                 'plazas_seleccionadas' => ['required', 'array', 'min:1'],
-                'plazas_seleccionadas.*' => ['required', 'string', 'distinct:strict', Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS))],
+                'plazas_seleccionadas.*' => [
+                    'required',
+                    'string',
+                    'distinct:strict',
+                    Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS)),
+                    Rule::notIn($reservedPlazaCodes),
+                ],
                 'plazas_disponibles' => ['required', 'integer', 'min:1', 'max:999999'],
                 'jornada_horario' => ['required', 'string', 'max:150'],
                 'salario' => ['required', 'numeric', 'min:0', 'max:9999999999'],
@@ -181,7 +205,13 @@ class ConvocatoriaController extends Controller
                 'categoria_actual' => ['required', 'string', 'max:150'],
                 'categoria_aspirada' => ['required', 'string', 'max:150'],
                 'plazas_seleccionadas' => ['required', 'array', 'min:1'],
-                'plazas_seleccionadas.*' => ['required', 'string', 'distinct:strict', Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS))],
+                'plazas_seleccionadas.*' => [
+                    'required',
+                    'string',
+                    'distinct:strict',
+                    Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS)),
+                    Rule::notIn($reservedPlazaCodes),
+                ],
                 'fecha_evaluacion' => ['required', 'date'],
                 'antiguedad_minima_meses' => ['required', 'integer', 'min:12', 'max:1200'],
                 'constancias_merito' => ['required', 'string', 'max:5000'],
@@ -209,6 +239,32 @@ class ConvocatoriaController extends Controller
                 'factor_puntualidad' => ['required', 'string', 'max:5000'],
             ],
         };
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function reservedTeachingPlazaCodes(?Convocatoria $excludingConvocatoria = null): array
+    {
+        return Convocatoria::query()
+            ->where('tipo_personal', 'Docente')
+            ->where('estatus', 'Activa')
+            ->whereDate('fecha_fin', '>=', today())
+            ->when(
+                $excludingConvocatoria !== null,
+                fn ($query) => $query->where('id', '<>', $excludingConvocatoria->getKey()),
+            )
+            ->get(['detalles_especificos'])
+            ->flatMap(static function (Convocatoria $convocatoria): array {
+                $selectedPlazaCodes = $convocatoria->detalles_especificos['plazas_seleccionadas'] ?? [];
+
+                return \is_array($selectedPlazaCodes) ? $selectedPlazaCodes : [];
+            })
+            ->filter(static fn (mixed $code): bool => \is_string($code)
+                && \array_key_exists($code, Convocatoria::TEACHING_POSITIONS))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /**

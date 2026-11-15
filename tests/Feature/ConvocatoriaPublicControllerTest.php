@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Convocatoria;
+use App\Models\Postulacion;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -94,6 +95,76 @@ class ConvocatoriaPublicControllerTest extends TestCase
             ->assertSessionHasErrors('tipo_concurso');
     }
 
+    public function test_home_filters_and_highlights_convocatorias_related_to_an_upcoming_plaza(): void
+    {
+        $applicant = User::factory()->create([
+            'role' => User::ROLE_USER,
+            'tipo_usuario' => 'aspirante_docente',
+            'plaza_jornada' => 'E3817',
+        ]);
+        $relatedConvocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria relacionada con plaza próxima',
+        ]);
+        $unrelatedConvocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria sin relación con plaza próxima',
+        ]);
+
+        Postulacion::query()->create([
+            'convocatoria_id' => $relatedConvocatoria->id,
+            'user_id' => $applicant->id,
+            'estatus' => Postulacion::STATUS_PENDING,
+        ]);
+        Postulacion::query()->create([
+            'convocatoria_id' => $unrelatedConvocatoria->id,
+            'user_id' => $applicant->id,
+            'estatus' => Postulacion::STATUS_REJECTED,
+        ]);
+
+        $this->get(route('home', ['plaza' => 'E3817']))
+            ->assertOk()
+            ->assertSee($relatedConvocatoria->titulo)
+            ->assertDontSee($unrelatedConvocatoria->titulo)
+            ->assertSee('id="convocatoria-'.$relatedConvocatoria->id.'"', false)
+            ->assertSee('animate-convocatoria-highlight', false)
+            ->assertViewHas('highlightedPlaza', 'E3817');
+    }
+
+    public function test_available_plaza_links_to_and_highlights_its_active_convocatoria(): void
+    {
+        $matchingConvocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria con plaza seleccionada',
+            'detalles_especificos' => ['plazas_seleccionadas' => ['E3617']],
+        ]);
+        $otherConvocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria con otra plaza',
+            'detalles_especificos' => ['plazas_seleccionadas' => ['E3817']],
+        ]);
+
+        $this->get(route('home', ['plaza' => 'E3617']))
+            ->assertOk()
+            ->assertSee($matchingConvocatoria->titulo)
+            ->assertDontSee($otherConvocatoria->titulo)
+            ->assertSee('id="convocatoria-'.$matchingConvocatoria->id.'"', false)
+            ->assertSee('animate-convocatoria-highlight', false);
+
+        $this->actingAs(User::factory()->create([
+            'role' => User::ROLE_USER,
+            'tipo_usuario' => 'aspirante_docente',
+            'plaza_jornada' => 'E3807',
+        ]))
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(route('home', ['plaza' => 'E3617']).'#convocatorias', false);
+    }
+
+    public function test_home_rejects_unsupported_plaza_filter(): void
+    {
+        $this->from(route('home'))
+            ->get(route('home', ['plaza' => 'E3817 OR 1=1']))
+            ->assertRedirect(route('home'))
+            ->assertSessionHasErrors('plaza');
+    }
+
     public function test_applicant_sees_a_postulate_button_instead_of_inline_upload_fields(): void
     {
         $applicant = User::factory()->create(['role' => User::ROLE_USER]);
@@ -106,6 +177,39 @@ class ConvocatoriaPublicControllerTest extends TestCase
             ->assertSee(route('postulaciones.create', $convocatoria))
             ->assertDontSee('name="documento"', false)
             ->assertDontSee('name="documentos[', false);
+    }
+
+    public function test_applicant_sees_submitted_convocatorias_as_applied_and_can_open_the_expedient(): void
+    {
+        $applicant = User::factory()->create(['role' => User::ROLE_USER]);
+        $submittedConvocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria ya postulada',
+        ]);
+        $availableConvocatoria = $this->createConvocatoria([
+            'titulo' => 'Convocatoria disponible',
+        ]);
+        $postulacion = Postulacion::query()->create([
+            'convocatoria_id' => $submittedConvocatoria->id,
+            'user_id' => $applicant->id,
+            'estatus' => Postulacion::STATUS_PENDING,
+        ]);
+
+        $this->actingAs($applicant)
+            ->get(route('home'))
+            ->assertOk()
+            ->assertSee($submittedConvocatoria->titulo)
+            ->assertSee($availableConvocatoria->titulo)
+            ->assertSee('border-emerald-300', false)
+            ->assertSee('bg-emerald-50/70', false)
+            ->assertSee('Ver postulación')
+            ->assertSee(route('postulaciones.show', $postulacion), false)
+            ->assertSee('Ver convocatoria')
+            ->assertSee(route('convocatorias.show', $availableConvocatoria), false);
+
+        $this->get(route('convocatorias.show', $submittedConvocatoria))
+            ->assertOk()
+            ->assertSee('Ver expediente enviado')
+            ->assertSee(route('postulaciones.show', $postulacion), false);
     }
 
     #[DataProvider('publicPresentationVariants')]

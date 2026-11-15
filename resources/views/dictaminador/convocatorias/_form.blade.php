@@ -4,6 +4,7 @@
     $tipoPersonal = old('tipo_personal', $tipoPersonal);
     $tipoConcurso = old('tipo_concurso', $tipoConcurso);
     $selectedTeachingPositions = (array) old('detalles.plazas_seleccionadas', $details['plazas_seleccionadas'] ?? []);
+    $reservedPlazaCodes = $reservedPlazaCodes ?? [];
     $controlClasses = 'w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-900';
 @endphp
 
@@ -81,18 +82,31 @@
             @if ($errors->has('detalles.plazas_seleccionadas') || $selectedTeachingPositions !== []) open @endif>
             <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-rose-950 transition hover:bg-rose-50">
                 Lista de plazas a seleccionar
-                <span class="mt-1 block text-xs font-normal text-gray-500">18 opciones disponibles · Puedes elegir una o varias.</span>
+                <span class="mt-1 block text-xs font-normal text-gray-500">Las plazas asignadas a convocatorias activas se deshabilitan hasta que se cierren o expiren.</span>
             </summary>
             <div class="max-h-80 overflow-y-auto overscroll-contain border-t border-gray-100 p-3">
                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     @foreach (\App\Models\Convocatoria::TEACHING_POSITIONS as $code => $description)
-                        <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-rose-300 hover:bg-rose-50/50">
+                        @php($isReserved = in_array($code, $reservedPlazaCodes, true))
+                        <label @class([
+                            'flex items-start gap-3 rounded-xl border p-3 transition',
+                            'cursor-pointer border-gray-200 bg-white hover:border-rose-300 hover:bg-rose-50/50' => ! $isReserved,
+                            'cursor-not-allowed border-gray-100 bg-gray-50 opacity-70' => $isReserved,
+                        ])>
                             <input type="checkbox" name="detalles[plazas_seleccionadas][]" value="{{ $code }}"
-                                @checked(in_array($code, $selectedTeachingPositions, true))
+                                @checked(! $isReserved && in_array($code, $selectedTeachingPositions, true))
+                                @disabled($isReserved)
                                 class="mt-1 h-4 w-4 rounded border-gray-300 text-rose-900 focus:ring-2 focus:ring-rose-900">
                             <span class="min-w-0">
-                                <span class="block font-mono text-sm font-bold text-rose-900">{{ $code }}</span>
+                                <span @class([
+                                    'block font-mono text-sm font-bold',
+                                    'text-rose-900' => ! $isReserved,
+                                    'text-gray-500' => $isReserved,
+                                ])>{{ $code }}</span>
                                 <span class="mt-0.5 block text-xs leading-5 text-gray-600">{{ $description }}</span>
+                                @if ($isReserved)
+                                    <span class="mt-1 block text-xs font-semibold text-amber-800">Ya asignada a otra convocatoria activa</span>
+                                @endif
                             </span>
                         </label>
                     @endforeach

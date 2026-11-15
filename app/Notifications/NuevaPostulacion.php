@@ -10,7 +10,11 @@ class NuevaPostulacion extends Notification
 {
     use Queueable;
 
-    public function __construct(private readonly Postulacion $postulacion) {}
+    public function __construct(
+        private readonly Postulacion $postulacion,
+        private readonly string $titulo = 'Nueva postulación',
+        private readonly ?string $mensaje = null,
+    ) {}
 
     public function via(object $notifiable): array
     {
@@ -23,8 +27,9 @@ class NuevaPostulacion extends Notification
     public function toDatabase(object $notifiable): array
     {
         return [
-            'titulo' => 'Nueva postulación',
-            'mensaje' => $this->postulacion->user->name.' se postuló a '.$this->postulacion->convocatoria->titulo.'.',
+            'titulo' => $this->titulo,
+            'mensaje' => $this->mensaje
+                ?? $this->postulacion->user->name.' se postuló a '.$this->postulacion->convocatoria->titulo.'.',
             'url' => route('dictaminador.postulantes.show', $this->postulacion),
             'postulacion_id' => $this->postulacion->id,
         ];

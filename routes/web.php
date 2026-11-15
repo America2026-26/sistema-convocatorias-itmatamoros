@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\PostulacionController as AdminPostulacionController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CalendarioController;
+use App\Http\Controllers\CalendarioEventoController;
 use App\Http\Controllers\ConvocatoriaPublicController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Dictaminador\ConvocatoriaController as DictaminadorConvocatoriaController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\PostulacionController;
 use App\Http\Controllers\PostulacionDocumentoController;
 use App\Http\Controllers\ProfileController;
 use App\Models\Convocatoria;
+use App\Models\Postulacion;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -23,10 +26,33 @@ use Illuminate\Validation\Rule;
 Route::redirect('/', '/login')->middleware('guest')->name('root');
 
 Route::get('/convocatorias', function (Request $request) {
+    $applicantId = $request->user()?->role === User::ROLE_USER
+        ? $request->user()->id
+        : null;
+
     $filters = $request->validate([
         'tipo_concurso' => ['nullable', Rule::in(['Abierta', 'Cerrada'])],
         'tipo_personal' => ['nullable', Rule::in(['Docente', 'No docente'])],
+        'plaza' => ['nullable', 'string', Rule::in(array_keys(Convocatoria::TEACHING_POSITIONS))],
     ]);
+
+    $highlightedPlaza = $filters['plaza'] ?? null;
+    $relatedConvocatoriaIds = $highlightedPlaza === null
+        ? null
+        : Postulacion::query()
+            ->whereIn('estatus', [
+                Postulacion::STATUS_PENDING,
+                Postulacion::STATUS_APPROVED,
+            ])
+            ->whereHas('user', fn ($query) => $query
+                ->where('role', User::ROLE_USER)
+                ->where('tipo_usuario', 'aspirante_docente')
+                ->where('plaza_jornada', $highlightedPlaza)
+                ->whereNull('users.deleted_at'))
+            ->whereHas('convocatoria', fn ($query) => $query->where('tipo_personal', 'Docente'))
+            ->pluck('convocatoria_id')
+            ->unique()
+            ->values();
 
     $preferredPersonnelType = $filters['tipo_personal']
         ?? match ($request->user()?->tipo_usuario) {
@@ -36,9 +62,19 @@ Route::get('/convocatorias', function (Request $request) {
         };
 
     $convocatorias = Convocatoria::query()
+        ->with(['postulaciones' => fn ($query) => $query
+            ->where('user_id', $applicantId)
+            ->select('id', 'convocatoria_id')])
         ->where('estatus', 'Activa')
         ->whereDate('fecha_inicio', '<=', today())
         ->whereDate('fecha_fin', '>=', today())
+        ->when(
+            $highlightedPlaza !== null,
+            fn ($query) => $query->where(function ($query) use ($highlightedPlaza, $relatedConvocatoriaIds): void {
+                $query->whereJsonContains('detalles_especificos->plazas_seleccionadas', $highlightedPlaza)
+                    ->orWhereIn('id', $relatedConvocatoriaIds);
+            }),
+        )
         ->when(
             isset($filters['tipo_concurso']),
             fn ($query) => $query->where('tipo_concurso', $filters['tipo_concurso']),
@@ -65,6 +101,7 @@ Route::get('/convocatorias', function (Request $request) {
             'tipo_concurso' => $filters['tipo_concurso'] ?? '',
             'tipo_personal' => $filters['tipo_personal'] ?? '',
         ],
+        'highlightedPlaza' => $highlightedPlaza,
     ]);
 })->name('home');
 Route::get('/convocatorias/{convocatoria}', [ConvocatoriaPublicController::class, 'show'])
@@ -105,6 +142,10 @@ Route::middleware('auth')->group(function () {
             ->name('postulaciones.index');
         Route::get('/mis-postulaciones/{postulacion}', [PostulacionController::class, 'show'])
             ->name('postulaciones.show');
+        Route::get('/mis-postulaciones/{postulacion}/editar', [PostulacionController::class, 'edit'])
+            ->name('postulaciones.edit');
+        Route::patch('/mis-postulaciones/{postulacion}', [PostulacionController::class, 'update'])
+            ->name('postulaciones.update');
         Route::get('/mis-postulaciones/{postulacion}/documento', [PostulacionController::class, 'document'])
             ->name('postulaciones.documento');
         Route::get('/mis-postulaciones/{postulacion}/documentos/{documento}', [PostulacionDocumentoController::class, 'show'])
@@ -117,6 +158,14 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('admin')->name('admin.')->middleware('role:'.User::ROLE_ADMIN)->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+        Route::get('/expedientes', [AdminPostulacionController::class, 'index'])
+            ->name('postulaciones.index');
+        Route::post('/expedientes/{postulacion}/devolver', [AdminPostulacionController::class, 'returnForEditing'])
+            ->name('postulaciones.return-for-editing');
+        Route::get('/expedientes/{postulacion}/documento', [AdminPostulacionController::class, 'document'])
+            ->name('postulaciones.document');
+        Route::get('/expedientes/{postulacion}/documentos/{documento}', [PostulacionDocumentoController::class, 'show'])
+            ->name('postulaciones.documento-requerido');
         Route::resource('users', AdminUserController::class)->except('show');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
     });
@@ -143,5 +192,14 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['auth'])->group(function () {
         Route::get('/mi-expediente/estado', [ExpedienteController::class, 'estado'])->name('expediente.estado');
         Route::get('/calendario-institucional', [CalendarioController::class, 'index'])->name('calendario.institucional');
+
+        Route::middleware('role:'.User::ROLE_ADMIN.','.User::ROLE_REVIEWER)->group(function () {
+            Route::post('/calendario-institucional/eventos', [CalendarioEventoController::class, 'store'])
+                ->name('calendario.eventos.store');
+            Route::patch('/calendario-institucional/eventos/{evento}', [CalendarioEventoController::class, 'update'])
+                ->name('calendario.eventos.update');
+            Route::delete('/calendario-institucional/eventos/{evento}', [CalendarioEventoController::class, 'destroy'])
+                ->name('calendario.eventos.destroy');
+        });
     });
 });

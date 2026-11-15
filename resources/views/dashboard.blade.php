@@ -22,6 +22,12 @@
             </nav>
         </header>
 
+        @if (session('status'))
+            <p role="status" class="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-900">
+                {{ session('status') }}
+            </p>
+        @endif
+
         <div class="grid gap-4 sm:grid-cols-2">
             <article class="rounded-2xl border border-rose-200 bg-rose-50/70 p-5 shadow-sm">
                 <p class="text-sm font-medium text-rose-950">Mis postulaciones</p>
@@ -261,8 +267,9 @@
                                     'bg-amber-100 text-amber-900' => $postulacion->estatus === 'pendiente',
                                     'bg-emerald-100 text-emerald-900' => $postulacion->estatus === 'aprobada',
                                     'bg-rose-100 text-rose-900' => $postulacion->estatus === 'rechazada',
-                                    'bg-gray-100 text-gray-700' => ! in_array($postulacion->estatus, ['pendiente', 'aprobada', 'rechazada'], true),
-                                ])>{{ ucfirst($postulacion->estatus) }}</span>
+                                    'bg-violet-100 text-violet-900' => $postulacion->estatus === 'devuelta',
+                                    'bg-gray-100 text-gray-700' => ! in_array($postulacion->estatus, ['pendiente', 'aprobada', 'rechazada', 'devuelta'], true),
+                                ])>{{ $postulacion->estatus === 'devuelta' ? 'Devuelta para edición' : ucfirst($postulacion->estatus) }}</span>
                             </div>
                         </div>
                         <a href="{{ route('postulaciones.show', $postulacion) }}" class="shrink-0 rounded-lg border border-rose-200 px-3 py-2 text-center text-sm font-semibold text-rose-900 transition hover:bg-rose-50">

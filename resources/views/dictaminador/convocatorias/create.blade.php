@@ -4,7 +4,12 @@
 
 @section('content')
     <section class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <h1 class="mb-6 text-2xl font-bold text-gray-900">Crear convocatoria</h1>
+        <div class="mb-6 flex items-center gap-3">
+            <x-back-button
+                :href="$selectedTypes === null ? route('dictaminador.convocatorias.index') : route('dictaminador.convocatorias.create')"
+                :label="$selectedTypes === null ? 'Volver a convocatorias' : 'Cambiar tipo de convocatoria'" />
+            <h1 class="text-2xl font-bold text-gray-900">Crear convocatoria</h1>
+        </div>
         @if ($selectedTypes === null)
             <div class="space-y-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                 <div>
@@ -47,7 +52,6 @@
         @else
             <div class="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
                 Paso 2: convocatoria {{ $selectedTypes['tipo_concurso'] }} para personal {{ strtolower($selectedTypes['tipo_personal']) }}.
-                <a href="{{ route('dictaminador.convocatorias.create') }}" class="ml-1 font-semibold underline">Cambiar selección</a>
             </div>
             @include('dictaminador.convocatorias._form', [
                 'action' => route('dictaminador.convocatorias.store', $selectedTypes),
@@ -56,6 +60,7 @@
                 'tipoConcurso' => $selectedTypes['tipo_concurso'],
                 'tipoPersonal' => $selectedTypes['tipo_personal'],
                 'convocatoria' => null,
+                'reservedPlazaCodes' => $reservedPlazaCodes,
             ])
         @endif
     </section>

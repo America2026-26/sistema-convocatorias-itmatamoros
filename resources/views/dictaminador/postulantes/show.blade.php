@@ -3,8 +3,8 @@
 @section('title', 'Expediente de postulante - Panel del Dictaminador')
 
 @section('content')
-    <section class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <a href="{{ route('dictaminador.postulantes.index', ['convocatoria' => $postulacion->convocatoria_id]) }}" class="text-sm font-semibold text-rose-900 hover:underline">&larr; Volver a postulantes</a>
+    <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <x-back-button href="{{ route('dictaminador.postulantes.index', ['convocatoria' => $postulacion->convocatoria_id]) }}" label="Volver a postulantes" />
 
         @if (session('status'))
             <p role="status" class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{{ session('status') }}</p>
@@ -42,23 +42,14 @@
                 </div>
             @endif
 
-            <div class="mt-6 border-t border-gray-100 pt-5">
-                <h2 class="text-sm font-bold text-gray-900">Documentación entregada</h2>
-                @if ($postulacion->documentos->isNotEmpty())
-                    <ul class="mt-3 space-y-3">
-                        @foreach ($postulacion->documentos as $documento)
-                            <li class="flex flex-col justify-between gap-2 rounded-lg border border-gray-200 p-3 sm:flex-row sm:items-center">
-                                <span class="text-sm font-medium text-gray-800">{{ $documento->nombre }}</span>
-                                <a href="{{ route('dictaminador.postulantes.required-document', [$postulacion, $documento]) }}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-rose-900 hover:underline">Abrir PDF</a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @elseif ($postulacion->documento_path)
-                    <a href="{{ route('dictaminador.postulantes.document', $postulacion) }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-900 hover:bg-rose-50">Abrir expediente PDF</a>
-                @else
-                    <p class="mt-2 text-sm text-gray-500">No se adjuntaron documentos.</p>
-                @endif
-            </div>
+            <x-postulacion-pdf-viewer
+                :postulacion="$postulacion"
+                :documents="$postulacion->documentos"
+                document-route="dictaminador.postulantes.required-document"
+                :legacy-url="$postulacion->documento_path ? route('dictaminador.postulantes.document', $postulacion) : null"
+                heading="Documentación entregada"
+                empty-message="No se adjuntaron documentos."
+            />
 
             @if ($postulacion->comentarios_revision)
                 <div class="mt-6 rounded-lg bg-gray-50 p-4">
@@ -75,10 +66,12 @@
                     <label for="comentarios_revision" class="mb-1 mt-4 block text-sm font-semibold text-gray-700">Observaciones (requeridas para rechazar)</label>
                     <textarea id="comentarios_revision" name="comentarios_revision" rows="4" maxlength="5000" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-900">{{ old('comentarios_revision') }}</textarea>
                     <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-                        <button name="estatus" value="aprobada" class="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600">Aprobar información</button>
-                        <button name="estatus" value="rechazada" class="rounded-lg bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">Rechazar información</button>
+                        <button name="estatus" value="aprobada" class="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-600">Aprobar</button>
+                        <button name="estatus" value="rechazada" class="rounded-lg bg-red-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">Rechazar</button>
                     </div>
                 </form>
+            @elseif ($postulacion->estatus === \App\Models\Postulacion::STATUS_RETURNED)
+                <p class="mt-6 border-t border-gray-100 pt-5 text-sm text-amber-800">El expediente fue devuelto al usuario para que realice correcciones antes de una nueva revisión.</p>
             @else
                 <p class="mt-6 border-t border-gray-100 pt-5 text-sm text-gray-600">Dictaminado por {{ $postulacion->revisor?->name ?? 'Dictaminador' }} el {{ $postulacion->revisado_en?->format('d/m/Y H:i') }}.</p>
             @endif

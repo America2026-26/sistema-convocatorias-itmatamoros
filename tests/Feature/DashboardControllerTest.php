@@ -41,6 +41,7 @@ class DashboardControllerTest extends TestCase
             ])
             ->assertSee($convocatoria->titulo)
             ->assertSee('Pendiente')
+            ->assertSee('Ver expediente enviado')
             ->assertSee(route('postulaciones.show', $postulacion))
             ->assertViewHas('unreadNotificationsCount', 1)
             ->assertViewHas(
@@ -90,6 +91,39 @@ class DashboardControllerTest extends TestCase
             ->assertSee('Disponible en convocatoria');
     }
 
+    public function test_applicant_can_view_their_returned_expedient_when_sql_server_returns_the_foreign_key_as_a_string(): void
+    {
+        Storage::fake('local');
+        $applicant = User::factory()->create(['role' => User::ROLE_USER]);
+        $convocatoria = $this->createConvocatoria('No docente');
+        $postulacion = Postulacion::query()->create([
+            'convocatoria_id' => $convocatoria->id,
+            'user_id' => $applicant->id,
+            'estatus' => Postulacion::STATUS_RETURNED,
+            'informacion' => ['texto' => 'Datos adicionales enviados.'],
+        ]);
+        $documentPath = UploadedFile::fake()->create('documento.pdf', 50, 'application/pdf')
+            ->store('postulaciones/'.$postulacion->id, 'local');
+        $documento = $postulacion->documentos()->create([
+            'clave' => 'solicitud_cv',
+            'nombre' => 'Solicitud en PDF',
+            'path' => $documentPath,
+        ]);
+        $userId = (string) $applicant->getKey();
+        $applicant->setAttribute($applicant->getKeyName(), $userId);
+
+        $this->actingAs($applicant)
+            ->get(route('postulaciones.show', $postulacion))
+            ->assertOk()
+            ->assertSee('Datos adicionales enviados.')
+            ->assertSee('Editar expediente')
+            ->assertSee(route('postulaciones.documento-requerido', [$postulacion, $documento]), false);
+
+        $this->get(route('postulaciones.documento-requerido', [$postulacion, $documento]))
+            ->assertOk()
+            ->assertHeader('content-type', 'application/pdf');
+    }
+
     public function test_teacher_postulation_marks_the_owners_plaza_as_upcoming_until_rejected(): void
     {
         Storage::fake('local');
@@ -116,17 +150,18 @@ class DashboardControllerTest extends TestCase
         $documents = [];
 
         foreach (array_keys($teachingConvocatoria->applicantDocumentRequirements()) as $key) {
-            $documents[$key] = UploadedFile::fake()->create($key.'.pdf', 50, 'application/pdf');
+            $documents[$key] = UploadedFile::fake()->createWithContent(
+                $key.'.pdf',
+                "%PDF-1.4\nContenido de prueba\n%%EOF",
+            );
         }
 
         $this->actingAs($applicant)
             ->post(route('postulaciones.store', $teachingConvocatoria), [
                 'documentos' => $documents,
+                'informacion' => 'Información adicional de prueba.',
             ])
-            ->assertRedirect(route('postulaciones.show', Postulacion::query()
-                ->where('convocatoria_id', $teachingConvocatoria->id)
-                ->where('user_id', $applicant->id)
-                ->firstOrFail()));
+            ->assertRedirect(route('dashboard'));
 
         $postulacion = Postulacion::query()
             ->where('convocatoria_id', $teachingConvocatoria->id)
@@ -134,6 +169,34 @@ class DashboardControllerTest extends TestCase
             ->firstOrFail();
 
         $this->assertSame(Postulacion::STATUS_PENDING, $postulacion->estatus);
+
+        $this->actingAs($applicant)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Tu postulación fue enviada.')
+            ->assertSee('Ver expediente enviado')
+            ->assertSee(route('postulaciones.show', $postulacion), false);
+
+        $expedienteResponse = $this->get(route('postulaciones.show', $postulacion));
+        $expedienteResponse->assertOk()
+            ->assertSee('Documentación enviada')
+            ->assertSee('Información adicional de prueba.')
+            ->assertSee('data-pdf-viewer', false)
+            ->assertSee('aria-expanded="false"', false)
+            ->assertSee('<iframe', false)
+            ->assertSee('title="Visor de PDF"', false)
+            ->assertSee('Abrir en pestaña nueva')
+            ->assertSee('Pantalla completa')
+            ->assertDontSee('Editar expediente')
+            ->assertDontSee('name="documentos[', false);
+        $this->assertSame(
+            0,
+            preg_match('/<iframe\b[^>]*\bsrc=/s', (string) $expedienteResponse->getContent()),
+        );
+
+        $documento = $postulacion->documentos()->firstOrFail();
+        $this->get(route('postulaciones.documento-requerido', [$postulacion, $documento]))
+            ->assertOk();
 
         Postulacion::query()->create([
             'convocatoria_id' => $noDocenteConvocatoria->id,
@@ -148,8 +211,10 @@ class DashboardControllerTest extends TestCase
                 ->assertSee('data-plaza-code="E3817"', false)
                 ->assertSee('data-plaza-status="upcoming"', false)
                 ->assertSee('aria-label="Plaza E3817: Próxima disponibilidad"', false)
+                ->assertSee(route('home', ['plaza' => 'E3817']).'#convocatorias', false)
                 ->assertSee('data-plaza-code="E3815"', false)
                 ->assertSee('data-plaza-status="occupied"', false)
+                ->assertDontSee(route('home', ['plaza' => 'E3815']).'#convocatorias', false)
                 ->assertSee('data-plaza-code="E3617"', false)
                 ->assertSee('data-plaza-status="available"', false);
         }

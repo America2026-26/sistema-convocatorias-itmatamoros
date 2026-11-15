@@ -4,7 +4,7 @@
 
 @section('content')
     <section class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <a href="{{ route('home') }}#convocatorias" class="text-sm font-semibold text-rose-900 hover:underline">&larr; Convocatorias</a>
+        <x-back-button href="{{ route('home') }}#convocatorias" label="Volver a convocatorias" />
 
         <article class="mt-5 rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
             @if (session('status'))
@@ -28,7 +28,7 @@
                 @if ($postulacionExistente)
                     <p class="rounded-lg bg-emerald-50 p-4 text-sm text-emerald-800">
                         Ya enviaste una postulación a esta convocatoria.
-                        <a href="{{ route('postulaciones.show', $postulacionExistente) }}" class="font-semibold underline">Consultar estatus</a>
+                        <a href="{{ route('postulaciones.show', $postulacionExistente) }}" class="font-semibold underline">Ver expediente enviado</a>
                     </p>
                 @elseif (! $convocatoria->isOpen())
                     <p class="rounded-lg bg-gray-50 p-4 text-sm text-gray-600">Esta convocatoria no está recibiendo postulaciones actualmente.</p>

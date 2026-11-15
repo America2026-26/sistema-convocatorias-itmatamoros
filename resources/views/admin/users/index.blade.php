@@ -9,10 +9,16 @@
                 <h1 class="text-2xl font-bold text-gray-900">Cuentas de usuario</h1>
                 <p class="mt-1 text-sm text-gray-600">Administra los usuarios, dictaminadores y administradores.</p>
             </div>
-            <a href="{{ route('admin.users.create') }}"
-                class="inline-flex items-center justify-center rounded-lg bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800">
-                Crear cuenta
-            </a>
+            <div class="flex flex-col gap-2 sm:flex-row">
+                <a href="{{ route('admin.postulaciones.index') }}"
+                    class="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50">
+                    Ver expedientes
+                </a>
+                <a href="{{ route('admin.users.create') }}"
+                    class="inline-flex items-center justify-center rounded-lg bg-rose-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-rose-800">
+                    Crear cuenta
+                </a>
+            </div>
         </div>
 
         @if (session('status'))
