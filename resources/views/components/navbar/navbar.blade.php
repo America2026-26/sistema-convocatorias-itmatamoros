@@ -116,6 +116,7 @@
                             </svg>
                         @endif
                     </button>
+
                     @if (
                         auth()->user()->role === \App\Models\User::ROLE_USER
                         && auth()->user()->tipo_usuario === 'aspirante_docente'
@@ -126,10 +127,37 @@
                                 {{ auth()->user()->name }}
                             </span>
                             <span class="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white">
-                                Plaza {{ auth()->user()->plaza_jornada }}
+                                Plaza {{ auth()->user()->plaza_jornada  ?? 'N/A'  }}
                             </span>
                         </div>
                     @endif
+
+                    @if (
+                        auth()->user()->role === \App\Models\User::ROLE_REVIEWER
+                    )
+                        <div class="hidden min-w-0 items-center gap-2 lg:flex">
+                            <span class="max-w-[12rem] truncate text-xs text-white/80">
+                                {{ auth()->user()->name }}
+                            </span>
+                            <span class="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white">
+                                Dictaminador
+                            </span>
+                        </div>
+                    @endif
+
+                    @if (
+                        auth()->user()->role === \App\Models\User::ROLE_ADMIN
+                    )
+                        <div class="hidden min-w-0 items-center gap-2 lg:flex">
+                            <span class="max-w-[12rem] truncate text-xs text-white/80">
+                                {{ auth()->user()->name }}
+                            </span>
+                            <span class="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white">
+                                Administrador
+                            </span>
+                        </div>
+                    @endif
+
                     <div id="profile-menu" data-profile-dropdown
                         class="absolute right-0 top-full z-50 mt-2 hidden w-64 overflow-hidden rounded-xl border border-gray-200 bg-white py-2 text-gray-800 shadow-xl">
                         <div class="border-b border-gray-100 px-4 pb-3 pt-2">

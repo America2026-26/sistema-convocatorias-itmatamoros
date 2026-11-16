@@ -193,7 +193,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/mi-expediente/estado', [ExpedienteController::class, 'estado'])->name('expediente.estado');
         Route::get('/calendario-institucional', [CalendarioController::class, 'index'])->name('calendario.institucional');
 
-        Route::middleware('role:'.User::ROLE_ADMIN.','.User::ROLE_REVIEWER)->group(function () {
+        Route::middleware('role:'.User::ROLE_REVIEWER)->group(function () {
             Route::post('/calendario-institucional/eventos', [CalendarioEventoController::class, 'store'])
                 ->name('calendario.eventos.store');
             Route::patch('/calendario-institucional/eventos/{evento}', [CalendarioEventoController::class, 'update'])

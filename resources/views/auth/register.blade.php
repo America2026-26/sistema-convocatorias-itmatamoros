@@ -17,7 +17,7 @@
                 <img
                     src="https://dev.matamoros.tecnm.mx/tecnm_itm/sitio/drive/logo-del-tec-guindo-289x300.png"
                     alt="Logotipo del Instituto Tecnológico de Matamoros"
-                    class="h-16 w-16 shrink-0 rounded-2xl bg-white p-2 object-contain shadow-sm ring-1 ring-gray-200"
+                    class="h-11 w-auto shrink-0 object-contain sm:h-14"
                 >
                 <span class="max-w-xs text-lg font-bold leading-tight text-gray-900 sm:max-w-none sm:text-xl">
                     Instituto Tecnológico de Matamoros

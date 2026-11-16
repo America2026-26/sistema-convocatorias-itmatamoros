@@ -117,3 +117,32 @@ html[data-theme='dark'] .text-emerald-950 {
 html[data-theme='dark'] .bg-amber-100.text-amber-900 {
     color: #f0d797;
 }
+
+body {
+    min-height: 100vh;
+    background-color: #f5f5f5;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+
+    top: 50%;
+    left: -150px;
+
+    width: 900px;
+    height: 900px;
+
+    transform: translateY(-50%);
+
+    background-image: url('https://dev.matamoros.tecnm.mx/tecnm_itm/sitio/drive/Logo_TecNM.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    /* background-size: cover; */
+
+    opacity: 0.03;
+
+    pointer-events: none;
+    z-index: -1;
+}

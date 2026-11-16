@@ -77,6 +77,6 @@ class CalendarioController extends Controller
         $user = $request->user();
 
         return $user instanceof User
-            && \in_array($user->role, [User::ROLE_ADMIN, User::ROLE_REVIEWER], true);
+            && \in_array($user->role, [User::ROLE_ADMIN], true);
     }
 }

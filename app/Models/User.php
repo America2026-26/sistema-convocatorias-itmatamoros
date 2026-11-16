@@ -66,9 +66,19 @@ class User extends Authenticatable
         ];
     }
 
+    public function isUser(): bool
+    {
+        return $this->role === self::ROLE_USER;
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isDictaminador(): bool
+    {
+        return $this->role === self::ROLE_REVIEWER;
     }
 
     public function postulaciones(): HasMany

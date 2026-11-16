@@ -1,16 +1,23 @@
 <footer class="mt-10 border-t border-white/15 brand-surface py-6 text-white/80">
-    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-center sm:flex-row sm:px-6 sm:text-left lg:px-8">
+    <div
+        class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-center sm:flex-row sm:px-6 sm:text-left lg:px-8">
         <p class="text-xs">
             &copy; {{ date('Y') }} Instituto Tecnológico de Matamoros. Sistema de Convocatorias.
         </p>
         <nav aria-label="Enlaces del sitio" class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs">
             <a href="{{ url('/') }}" class="transition hover:text-white">Inicio</a>
-            <a href="{{ url('/') }}#convocatorias" class="transition hover:text-white">Convocatorias</a>
             @auth
-                <a href="{{ route('dashboard') }}" class="transition hover:text-white">Mi panel</a>
                 @if (auth()->user()->isAdmin())
                     <a href="{{ route('admin.users.index') }}" class="transition hover:text-white">Cuentas</a>
                     <a href="{{ route('admin.audit-logs.index') }}" class="transition hover:text-white">Historial</a>
+                @endif
+                @if (auth()->user()->isDictaminador())
+                    <a href="{{ route('dictaminador.convocatorias.index') }}" class="transition hover:text-white">Convocatorias</a>
+                    <a href="{{ route('dictaminador.postulantes.index') }}" class="transition hover:text-white">Postulantes</a>
+                @endif
+                @if (auth()->user()->isUser())
+                    <a href="{{ route('home') }}#convocatorias"" class="transition hover:text-white">Convocatorias</a>
+                    <a href="{{ route('expediente.estado') }}" class="transition hover:text-white">Mi expediente</a>
                 @endif
             @else
                 <a href="{{ route('login') }}" class="transition hover:text-white">Iniciar sesión</a>
