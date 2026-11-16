@@ -133,6 +133,17 @@
                     @endif
 
                     @if (
+                        auth()->user()->role === \App\Models\User::ROLE_USER
+                        && auth()->user()->tipo_usuario === 'aspirante_no_docente'
+                    )
+                        <div class="hidden min-w-0 items-center gap-2 lg:flex">
+                            <span class="max-w-[12rem] truncate text-xs text-white/80">
+                                {{ auth()->user()->name }}
+                            </span>
+                        </div>
+                    @endif
+
+                    @if (
                         auth()->user()->role === \App\Models\User::ROLE_REVIEWER
                     )
                         <div class="hidden min-w-0 items-center gap-2 lg:flex">
