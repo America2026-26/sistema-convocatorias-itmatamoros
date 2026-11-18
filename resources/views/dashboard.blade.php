@@ -29,12 +29,12 @@
         @endif
 
         <div class="grid gap-4 sm:grid-cols-2">
-            <article class="rounded-2xl border border-rose-200 bg-rose-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-rose-950">Mis postulaciones</p>
                 <p class="mt-3 text-3xl font-bold text-rose-950">{{ number_format($postulaciones->total()) }}</p>
                 <p class="mt-1 text-xs text-rose-900">Expedientes enviados</p>
             </article>
-            <article class="rounded-2xl border border-sky-200 bg-sky-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-sky-900">Notificaciones nuevas</p>
                 <p class="mt-3 text-3xl font-bold text-sky-950">{{ number_format($unreadNotificationsCount) }}</p>
                 <a href="{{ route('notifications.index') }}" class="mt-1 inline-block text-xs font-semibold text-sky-900 hover:underline">

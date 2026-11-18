@@ -77,39 +77,51 @@
         @if ($tipoPersonal !== 'Docente') disabled hidden @endif
         class="space-y-4 rounded-xl border border-rose-100 bg-rose-50/40 p-4 sm:p-5">
         <legend class="px-2 text-base font-semibold text-gray-900">Plazas docentes por jornada</legend>
-        <p class="text-sm leading-6 text-gray-600">Selecciona una o más plazas disponibles para esta convocatoria.</p>
+        <p class="text-sm leading-6 text-gray-600">Selecciona una plaza disponibles para esta convocatoria.</p>
         <details class="overflow-hidden rounded-xl border border-rose-200 bg-white"
             @if ($errors->has('detalles.plazas_seleccionadas') || $selectedTeachingPositions !== []) open @endif>
             <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-rose-950 transition hover:bg-rose-50">
                 Lista de plazas a seleccionar
-                <span class="mt-1 block text-xs font-normal text-gray-500">Las plazas asignadas a convocatorias activas se deshabilitan hasta que se cierren o expiren.</span>
+                <span class="mt-1 block text-xs font-normal text-gray-500">Las plazas asignadas a convocatorias activas o ocupadas, se deshabilitan hasta que se cierren, expiren o desocupen.</span>
             </summary>
             <div class="max-h-80 overflow-y-auto overscroll-contain border-t border-gray-100 p-3">
                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+
+
                     @foreach (\App\Models\Convocatoria::TEACHING_POSITIONS as $code => $description)
-                        @php($isReserved = in_array($code, $reservedPlazaCodes, true))
+                        @php
+                        $isReserved = in_array($code, $reservedPlazaCodes, true);
+                        $isOccupied = in_array($code, $occupiedPlazaCodes ?? [], true);
+                        $isDisabled = $isReserved || $isOccupied;
+                        @endphp
+                        
                         <label @class([
                             'flex items-start gap-3 rounded-xl border p-3 transition',
-                            'cursor-pointer border-gray-200 bg-white hover:border-rose-300 hover:bg-rose-50/50' => ! $isReserved,
-                            'cursor-not-allowed border-gray-100 bg-gray-50 opacity-70' => $isReserved,
+                            'cursor-pointer border-gray-200 bg-white hover:border-rose-300 hover:bg-rose-50/50' => ! $isDisabled,
+                            'cursor-not-allowed border-gray-100 bg-gray-50 opacity-70' => $isDisabled,
                         ])>
-                            <input type="checkbox" name="detalles[plazas_seleccionadas][]" value="{{ $code }}"
-                                @checked(! $isReserved && in_array($code, $selectedTeachingPositions, true))
-                                @disabled($isReserved)
+                            <input type="radio" name="detalles[plazas_seleccionadas][]" value="{{ $code }}"
+                                @checked(! $isDisabled && in_array($code, $selectedTeachingPositions, true))
+                                @disabled($isDisabled)
                                 class="mt-1 h-4 w-4 rounded border-gray-300 text-rose-900 focus:ring-2 focus:ring-rose-900">
                             <span class="min-w-0">
                                 <span @class([
                                     'block font-mono text-sm font-bold',
-                                    'text-rose-900' => ! $isReserved,
-                                    'text-gray-500' => $isReserved,
+                                    'text-rose-900' => ! $isDisabled,
+                                    'text-gray-500' => $isDisabled,
                                 ])>{{ $code }}</span>
                                 <span class="mt-0.5 block text-xs leading-5 text-gray-600">{{ $description }}</span>
                                 @if ($isReserved)
                                     <span class="mt-1 block text-xs font-semibold text-amber-800">Ya asignada a otra convocatoria activa</span>
+                                @elseif ($isOccupied)
+                                    <span class="mt-1 block text-xs font-semibold text-rose-800">Plaza ocupada (no disponible)</span>
                                 @endif
                             </span>
                         </label>
                     @endforeach
+
+                    
+                    
                 </div>
             </div>
         </details>

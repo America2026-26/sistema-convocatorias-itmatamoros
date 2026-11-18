@@ -86,13 +86,15 @@ class DashboardController extends Controller
 
         $availablePlazaCodes = Convocatoria::query()
             ->where('tipo_personal', 'Docente')
+            ->where('estatus', 'Activa') // <- 1. Solo convocatorias activas
+            ->whereDate('fecha_fin', '>=', today()) // <- 2. Que aún no hayan expirado
             ->get(['detalles_especificos'])
             ->flatMap(static function (Convocatoria $convocatoria): array {
                 $selectedPlazaCodes = $convocatoria->detalles_especificos['plazas_seleccionadas'] ?? [];
 
-                return is_array($selectedPlazaCodes) ? $selectedPlazaCodes : [];
+                return is_array($selectedPlazaCodes) ? $selectedPlazaCodes : [$selectedPlazaCodes];
             })
-            ->filter(static fn (mixed $code): bool => is_string($code)
+            ->filter(static fn(mixed $code): bool => is_string($code)
                 && array_key_exists($code, Convocatoria::TEACHING_POSITIONS))
             ->unique()
             ->all();
@@ -111,7 +113,7 @@ class DashboardController extends Controller
             ->whereNull('users.deleted_at')
             ->distinct()
             ->pluck('users.plaza_jornada')
-            ->filter(static fn (mixed $code): bool => is_string($code)
+            ->filter(static fn(mixed $code): bool => is_string($code)
                 && array_key_exists($code, Convocatoria::TEACHING_POSITIONS))
             ->all();
 

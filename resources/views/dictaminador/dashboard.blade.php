@@ -28,17 +28,17 @@
                 <p class="mt-3 text-3xl font-bold text-gray-950">{{ number_format($convocatoriasCount) }}</p>
                 <p class="mt-1 text-xs text-gray-500">Abiertas y concluidas</p>
             </article>
-            <article class="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-emerald-900">Convocatorias vigentes</p>
                 <p class="mt-3 text-3xl font-bold text-emerald-950">{{ number_format($convocatoriasActivasCount) }}</p>
                 <p class="mt-1 text-xs text-emerald-800">Disponibles actualmente</p>
             </article>
-            <article class="rounded-2xl border border-sky-200 bg-sky-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl border border-sky-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-sky-900">Postulantes</p>
                 <p class="mt-3 text-3xl font-bold text-sky-950">{{ number_format($postulantesCount) }}</p>
                 <p class="mt-1 text-xs text-sky-800">Con al menos una postulación</p>
             </article>
-            <article class="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-amber-950">Postulaciones pendientes</p>
                 <p class="mt-3 text-3xl font-bold text-amber-950">{{ number_format($pendingCount) }}</p>
                 <p class="mt-1 text-xs text-amber-900">Expedientes por revisar</p>

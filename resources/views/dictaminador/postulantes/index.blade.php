@@ -5,13 +5,14 @@
 @section('content')
     <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-6">
+            <x-back-button href="{{ route('dashboard') }}" label="Volver al panel" />
             <h1 class="text-2xl font-bold text-gray-900">Postulantes</h1>
             <p class="mt-1 text-sm text-gray-600">Consulta las solicitudes organizadas por tipo de personal y convocatoria.</p>
         </div>
 
         <form method="GET" class="mb-5 flex flex-col gap-3 sm:flex-row">
             <label for="tipo_personal" class="sr-only">Filtrar por tipo de personal</label>
-            <select id="tipo_personal" name="tipo_personal" class="rounded-lg border border-gray-300 px-3 py-2 text-sm">
+            <select id="tipo_personal" name="tipo_personal" class="rounded-lg bg-white border border-gray-300 px-3 py-2 text-sm">
                 <option value="">Todos los tipos</option>
                 @foreach ($tiposPersonal as $tipo)
                     <option value="{{ $tipo }}" @selected($tipoSeleccionado === $tipo)>{{ $tipo }}</option>

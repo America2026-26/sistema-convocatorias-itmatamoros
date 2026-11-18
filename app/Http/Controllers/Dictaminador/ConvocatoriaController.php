@@ -20,7 +20,7 @@ class ConvocatoriaController extends Controller
             'convocatorias' => Convocatoria::query()
                 ->withCount([
                     'postulaciones',
-                    'postulaciones as pendientes_count' => fn ($query) => $query
+                    'postulaciones as pendientes_count' => fn($query) => $query
                         ->where('estatus', 'pendiente'),
                 ])
                 ->orderByDesc('created_at')
@@ -43,6 +43,7 @@ class ConvocatoriaController extends Controller
         return view('dictaminador.convocatorias.create', [
             'selectedTypes' => $selectedTypes,
             'reservedPlazaCodes' => $this->reservedTeachingPlazaCodes(),
+            'occupiedPlazaCodes' => $this->occupiedTeachingPlazaCodes(),
         ]);
     }
 
@@ -72,6 +73,7 @@ class ConvocatoriaController extends Controller
         return view('dictaminador.convocatorias.edit', [
             'convocatoria' => $convocatoria,
             'reservedPlazaCodes' => $this->reservedTeachingPlazaCodes($convocatoria),
+            'occupiedPlazaCodes' => $this->occupiedTeachingPlazaCodes(),
         ]);
     }
 
@@ -101,10 +103,27 @@ class ConvocatoriaController extends Controller
         DB::transaction(function () use ($request, $convocatoria): void {
             $convocatoria = Convocatoria::query()->lockForUpdate()->findOrFail($convocatoria->id);
 
-            if ($convocatoria->postulaciones()->exists()) {
+            // if ($convocatoria->postulaciones()->exists()) {
+            //     throw ValidationException::withMessages([
+            //         'convocatoria' => 'No es posible eliminar una convocatoria con postulaciones; puedes cerrarla en su lugar.',
+            //     ]);
+            // }
+
+            $hasPostulaciones = $convocatoria->postulaciones()->exists();
+            $isExpired = $convocatoria->fecha_fin < now ()-> toDateString();
+            $canDelete = !$hasPostulaciones && $isExpired;
+
+            if (!$canDelete) {
                 throw ValidationException::withMessages([
-                    'convocatoria' => 'No es posible eliminar una convocatoria con postulaciones; puedes cerrarla en su lugar.',
+                    'convocatoria' => 'No es posible eliminar una convocatoria con postulaciones o que aún no haya expirado.',
                 ]);
+            }
+
+            if ($hasPostulaciones){
+                $convocatoria->postulaciones()->delete();
+                // throw ValidationException::withMessages([
+                //     'convocatoria' => 'No es posible eliminar una convocatoria con postulaciones.',
+                // ]);
             }
 
             AuditLog::record('convocatoria.deleted', $request->user(), null, [
@@ -134,7 +153,7 @@ class ConvocatoriaController extends Controller
             $this->reservedTeachingPlazaCodes($convocatoria),
         );
         $allowedDetails = array_unique(array_map(
-            static fn (string $attribute): string => explode('.', $attribute)[0],
+            static fn(string $attribute): string => explode('.', $attribute)[0],
             array_keys($detailRules),
         ));
 
@@ -145,9 +164,9 @@ class ConvocatoriaController extends Controller
                 'fecha_fin' => ['required', 'date', 'after_or_equal:fecha_inicio'],
                 'estatus' => ['required', Rule::in(['Activa', 'Borrador', 'Cerrada'])],
                 'requisitos_especificos' => ['nullable', 'string', 'max:10000'],
-                'detalles' => ['required', 'array:'.implode(',', $allowedDetails)],
+                'detalles' => ['required', 'array:' . implode(',', $allowedDetails)],
                 ...array_combine(
-                    array_map(static fn (string $attribute): string => 'detalles.'.$attribute, array_keys($detailRules)),
+                    array_map(static fn(string $attribute): string => 'detalles.' . $attribute, array_keys($detailRules)),
                     array_values($detailRules),
                 ),
             ],
@@ -252,7 +271,7 @@ class ConvocatoriaController extends Controller
             ->whereDate('fecha_fin', '>=', today())
             ->when(
                 $excludingConvocatoria !== null,
-                fn ($query) => $query->where('id', '<>', $excludingConvocatoria->getKey()),
+                fn($query) => $query->where('id', '<>', $excludingConvocatoria->getKey()),
             )
             ->get(['detalles_especificos'])
             ->flatMap(static function (Convocatoria $convocatoria): array {
@@ -260,8 +279,20 @@ class ConvocatoriaController extends Controller
 
                 return \is_array($selectedPlazaCodes) ? $selectedPlazaCodes : [];
             })
-            ->filter(static fn (mixed $code): bool => \is_string($code)
+            ->filter(static fn(mixed $code): bool => \is_string($code)
                 && \array_key_exists($code, Convocatoria::TEACHING_POSITIONS))
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function occupiedTeachingPlazaCodes(): array
+    {
+        // Ajusta 'Plaza', 'estatus' y 'ocupada' según los nombres reales en tu BD
+        return \App\Models\User::query()
+            ->where('plaza_jornada', '!=', null)
+            ->pluck('plaza_jornada') // o el campo que contenga la clave de la plaza (ej. 'E3817')
+            ->filter(static fn(mixed $code): bool => \is_string($code) && \array_key_exists($code, Convocatoria::TEACHING_POSITIONS))
             ->unique()
             ->values()
             ->all();

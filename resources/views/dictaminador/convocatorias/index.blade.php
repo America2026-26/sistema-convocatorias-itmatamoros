@@ -6,6 +6,7 @@
     <section class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
+                <x-back-button href="{{ route('dashboard') }}" label="Volver al panel" />
                 <h1 class="text-2xl font-bold text-gray-900">Convocatorias</h1>
                 <p class="mt-1 text-sm text-gray-600">Crea, edita, cierra o elimina convocatorias.</p>
             </div>
@@ -38,13 +39,27 @@
                         <div class="flex flex-wrap gap-3">
                             <a href="{{ route('dictaminador.postulantes.index', ['convocatoria' => $convocatoria->id]) }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Postulantes</a>
                             <a href="{{ route('dictaminador.convocatorias.edit', $convocatoria) }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Editar</a>
-                            @if ($convocatoria->postulaciones_count === 0)
+                            @php
+                                $hasNoPostulaciones = ($convocatoria->postulaciones_count ?? $convocatoria->postulaciones()->count()) === 0;
+                                $isExpired = $convocatoria->fecha_fin < now()->toDateString();
+                            @endphp
+
+                            @if ($hasNoPostulaciones || $isExpired)
                                 <form action="{{ route('dictaminador.convocatorias.destroy', $convocatoria) }}" method="POST" onsubmit="return confirm('¿Eliminar esta convocatoria?')">
                                     @csrf
                                     @method('DELETE')
                                     <button class="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Eliminar</button>
                                 </form>
                             @endif
+                            
+                            
+                            <!-- @if ($convocatoria->postulaciones_count === 0)
+                                <form action="{{ route('dictaminador.convocatorias.destroy', $convocatoria) }}" method="POST" onsubmit="return confirm('¿Eliminar esta convocatoria?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">Eliminar</button>
+                                </form>
+                            @endif -->
                         </div>
                     </div>
                 </article>

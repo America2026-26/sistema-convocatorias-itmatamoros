@@ -23,17 +23,17 @@
         </header>
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <article class="rounded-2xl border border-rose-200 bg-rose-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl bg-white border border-rose-200  p-5 shadow-sm">
                 <p class="text-sm font-medium text-rose-950">Convocatorias creadas</p>
                 <p class="mt-3 text-3xl font-bold text-rose-950">{{ number_format($convocatoriasCount) }}</p>
                 <p class="mt-1 text-xs text-rose-900">Registradas en el sistema</p>
             </article>
-            <article class="rounded-2xl border border-sky-200 bg-sky-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl border border-sky-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-sky-900">Usuarios en el sistema</p>
                 <p class="mt-3 text-3xl font-bold text-sky-950">{{ number_format($usersCount) }}</p>
                 <p class="mt-1 text-xs text-sky-800">Cuentas activas de todos los roles</p>
             </article>
-            <article class="rounded-2xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
+            <article class="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-amber-950">Postulaciones pendientes</p>
                 <p class="mt-3 text-3xl font-bold text-amber-950">{{ number_format($pendingCount) }}</p>
                 <p class="mt-1 text-xs text-amber-900">En espera de dictamen</p>

@@ -6,6 +6,7 @@
     <section class="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         <header class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
+                <x-back-button href="{{ route('dashboard') }}" label="Volver al panel" />
                 <p class="text-xs font-semibold uppercase tracking-wide text-rose-900">Administración</p>
                 <h1 class="mt-1 text-2xl font-bold text-gray-950">Expedientes de usuarios</h1>
                 <p class="mt-1 text-sm text-gray-600">Consulta los expedientes por usuario y devuélvelos para correcciones antes del dictamen.</p>
