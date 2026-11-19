@@ -13,21 +13,21 @@
                 </p>
             </div>
             <nav aria-label="Acciones del dictaminador" class="flex flex-col gap-3 sm:flex-row">
-                <a href="{{ route('dictaminador.convocatorias.create') }}" class="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-rose-950 transition hover:bg-rose-50">
-                    Nueva convocatoria
-                </a>
-                <a href="{{ route('dictaminador.postulantes.index') }}" class="rounded-xl border border-white/40 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-white/10">
+                <a href="{{ route('dictaminador.convocatorias.index') }}" class="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-rose-950 transition hover:bg-rose-50">
+                    Revisar convocatorias
+                </a> 
+                <a href="{{ route('dictaminador.postulantes.index') }}" class="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-rose-950 transition hover:bg-rose-50">
                     Revisar postulantes
                 </a>
             </nav>
         </header>
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <!-- <article class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-gray-600">Convocatorias registradas</p>
                 <p class="mt-3 text-3xl font-bold text-gray-950">{{ number_format($convocatoriasCount) }}</p>
                 <p class="mt-1 text-xs text-gray-500">Abiertas y concluidas</p>
-            </article>
+            </article> -->
             <article class="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
                 <p class="text-sm font-medium text-emerald-900">Convocatorias vigentes</p>
                 <p class="mt-3 text-3xl font-bold text-emerald-950">{{ number_format($convocatoriasActivasCount) }}</p>
@@ -92,9 +92,9 @@
                         <h2 id="expiring-convocatorias-heading" class="text-lg font-bold text-gray-950">Convocatorias a punto de vencer</h2>
                         <p class="mt-1 text-sm text-gray-600">Vencen dentro de los próximos siete días.</p>
                     </div>
-                    <a href="{{ route('dictaminador.convocatorias.index') }}" class="shrink-0 text-sm font-semibold text-rose-900 hover:text-rose-700 hover:underline">
+                    <!-- <a href="{{ route('dictaminador.convocatorias.index') }}" class="shrink-0 text-sm font-semibold text-rose-900 hover:text-rose-700 hover:underline">
                         Administrar
-                    </a>
+                    </a> -->
                 </div>
 
                 <div class="space-y-3">
@@ -116,7 +116,7 @@
             </section>
         </div>
 
-        <section class="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="recent-convocatorias-heading">
+        <!-- <section class="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="recent-convocatorias-heading">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 id="recent-convocatorias-heading" class="text-lg font-bold text-gray-950">Convocatorias recientes</h2>
@@ -151,6 +151,8 @@
                     </p>
                 @endforelse
             </div>
-        </section>
+        </section> -->
+
+        
     </section>
 @endsection

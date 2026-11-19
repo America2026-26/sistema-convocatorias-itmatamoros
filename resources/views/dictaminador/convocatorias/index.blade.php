@@ -8,9 +8,8 @@
             <div>
                 <x-back-button href="{{ route('dashboard') }}" label="Volver al panel" />
                 <h1 class="text-2xl font-bold text-gray-900">Convocatorias</h1>
-                <p class="mt-1 text-sm text-gray-600">Crea, edita, cierra o elimina convocatorias.</p>
+                
             </div>
-            <a href="{{ route('dictaminador.convocatorias.create') }}" class="rounded-lg bg-rose-900 px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-rose-800">Nueva convocatoria</a>
         </div>
 
         @if (session('status'))
@@ -38,7 +37,6 @@
                         </div>
                         <div class="flex flex-wrap gap-3">
                             <a href="{{ route('dictaminador.postulantes.index', ['convocatoria' => $convocatoria->id]) }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Postulantes</a>
-                            <a href="{{ route('dictaminador.convocatorias.edit', $convocatoria) }}" class="rounded-lg border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Editar</a>
                             @php
                                 $hasNoPostulaciones = ($convocatoria->postulaciones_count ?? $convocatoria->postulaciones()->count()) === 0;
                                 $isExpired = $convocatoria->fecha_fin < now()->toDateString();

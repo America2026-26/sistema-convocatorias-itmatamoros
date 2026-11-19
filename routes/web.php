@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\PostulacionController as AdminPostulacionController;
+use App\Http\Controllers\Admin\ConvocatoriaController as AdminConvocatoriaController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\CalendarioController;
@@ -158,6 +159,8 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('admin')->name('admin.')->middleware('role:'.User::ROLE_ADMIN)->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+        Route::resource('convocatorias', AdminConvocatoriaController::class)
+                ->except('show');
         Route::get('/expedientes', [AdminPostulacionController::class, 'index'])
             ->name('postulaciones.index');
         Route::post('/expedientes/{postulacion}/devolver', [AdminPostulacionController::class, 'returnForEditing'])
@@ -174,8 +177,8 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:'.User::ROLE_REVIEWER)
         ->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
-            Route::resource('convocatorias', DictaminadorConvocatoriaController::class)
-                ->except('show');
+            Route::get('/convocatorias', [DictaminadorConvocatoriaController::class, 'index'])
+                ->name('convocatorias.index');
             Route::get('/postulantes', [PostulanteController::class, 'index'])
                 ->name('postulantes.index');
             Route::get('/postulantes/{postulacion}', [PostulanteController::class, 'show'])

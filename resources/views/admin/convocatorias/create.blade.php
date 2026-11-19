@@ -6,7 +6,7 @@
     <section class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-6 flex items-center gap-3">
             <x-back-button
-                :href="$selectedTypes === null ? route('dictaminador.convocatorias.index') : route('dictaminador.convocatorias.create')"
+                :href="$selectedTypes === null ? route('admin.convocatorias.index') : route('admin.convocatorias.create')"
                 :label="$selectedTypes === null ? 'Volver a convocatorias' : 'Cambiar tipo de convocatoria'" />
             <h1 class="text-2xl font-bold text-gray-900">Crear convocatoria</h1>
         </div>
@@ -23,7 +23,7 @@
                     </div>
                 @endif
 
-                <form action="{{ route('dictaminador.convocatorias.create') }}" method="GET" class="space-y-5">
+                <form action="{{ route('admin.convocatorias.create') }}" method="GET" class="space-y-5">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label for="tipo_concurso" class="mb-1 block text-sm font-semibold text-gray-700">Tipo de convocatoria</label>
@@ -53,8 +53,8 @@
             <div class="mb-5 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
                 Paso 2: convocatoria {{ $selectedTypes['tipo_concurso'] }} para personal {{ strtolower($selectedTypes['tipo_personal']) }}.
             </div>
-            @include('dictaminador.convocatorias._form', [
-                'action' => route('dictaminador.convocatorias.store', $selectedTypes),
+            @include('admin.convocatorias._form', [
+                'action' => route('admin.convocatorias.store', $selectedTypes),
                 'method' => 'POST',
                 'submitLabel' => 'Guardar convocatoria',
                 'tipoConcurso' => $selectedTypes['tipo_concurso'],
