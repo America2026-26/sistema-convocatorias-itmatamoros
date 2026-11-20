@@ -25,15 +25,38 @@
         'Cierre de convocatoria o registro' => $convocatoria->fecha_fin->format('d/m/Y'),
     ];
 
+    $occupiedKeys = array_map(
+        'strval',
+        (array) ($plazasOcupadas ?? $convocatoria->occupiedTeachingPositions()),
+    );
+
+    $greenPositions = [];
+    $disabledOccupiedPositions = [];
+
     if ($convocatoria->tipo_personal === 'Docente') {
-        $selectedPositions = [];
-        foreach ((array) ($details['plazas_seleccionadas'] ?? []) as $selectedPosition) {
-            if (is_string($selectedPosition) && isset(\App\Models\Convocatoria::TEACHING_POSITIONS[$selectedPosition])) {
-                $selectedPositions[] = $selectedPosition.' — '.\App\Models\Convocatoria::TEACHING_POSITIONS[$selectedPosition];
+        $selectedPositions = (array) ($details['plazas_seleccionadas'] ?? []);
+
+        foreach ($selectedPositions as $selectedPosition) {
+            if (!is_string($selectedPosition) || !isset(\App\Models\Convocatoria::TEACHING_POSITIONS[$selectedPosition])) {
+                continue;
+            }
+
+            $label = $selectedPosition.' — '.\App\Models\Convocatoria::TEACHING_POSITIONS[$selectedPosition];
+
+            if (in_array($selectedPosition, $occupiedKeys, true)) {
+                $disabledOccupiedPositions[] = $label;
+            } else {
+                $greenPositions[] = $label;
             }
         }
-        if (!empty($selectedPositions)) {
-            $fields['Plazas seleccionadas'] = $selectedPositions;
+
+        foreach ($occupiedKeys as $occupiedKey) {
+            if (isset(\App\Models\Convocatoria::TEACHING_POSITIONS[$occupiedKey])) {
+                $label = $occupiedKey.' — '.\App\Models\Convocatoria::TEACHING_POSITIONS[$occupiedKey];
+                if (!in_array($label, $disabledOccupiedPositions, true) && !in_array($label, $greenPositions, true)) {
+                    $disabledOccupiedPositions[] = $label;
+                }
+            }
         }
     }
 
@@ -84,28 +107,58 @@
 @endphp
 
 <div class="{{ $compact ? 'space-y-3' : 'space-y-6' }}">
-    <dl class="grid grid-cols-1 gap-3 rounded-lg bg-rose-50 p-4 text-sm sm:grid-cols-2">
-        @foreach ($fields as $label => $value)
-            <div>
-                <dt class="text-xs font-semibold text-gray-500">{{ $label }}</dt>
-                <dd class="mt-1 whitespace-pre-line text-gray-900">
-                    @if (is_array($value))
-                        @if ($value !== [])
-                            <ul class="list-inside list-disc space-y-1">
-                                @foreach ($value as $item)
-                                    <li>{{ $item }}</li>
-                                @endforeach
-                            </ul>
+    <div class="rounded-lg bg-rose-50 p-4 text-sm">
+        <dl class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            @foreach ($fields as $label => $value)
+                <div>
+                    <dt class="text-xs font-semibold text-gray-500">{{ $label }}</dt>
+                    <dd class="mt-1 whitespace-pre-line text-gray-900">
+                        @if (is_array($value))
+                            @if ($value !== [])
+                                <ul class="list-inside list-disc space-y-1">
+                                    @foreach ($value as $item)
+                                        <li>{{ $item }}</li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                No especificado
+                            @endif
                         @else
-                            No especificado
+                            {{ filled($value) ? $value : 'No especificado' }}
                         @endif
-                    @else
-                        {{ filled($value) ? $value : 'No especificado' }}
-                    @endif
-                </dd>
+                    </dd>
+                </div>
+            @endforeach
+        </dl>
+
+        @if ($convocatoria->tipo_personal === 'Docente' && ($greenPositions !== [] || $disabledOccupiedPositions !== []))
+            <div class="mt-4 border-t border-rose-200/70 pt-3">
+                <p class="text-xs font-semibold text-gray-600">Plazas de la convocatoria</p>
+
+                @if ($greenPositions !== [])
+                    <ul class="mt-2 space-y-1.5">
+                        @foreach ($greenPositions as $position)
+                            <li class="flex items-center justify-between rounded border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-900">
+                                <span>{{ $position }}</span>
+                                <span class="rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">Disponible</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
+                @if ($disabledOccupiedPositions !== [])
+                    <ul class="mt-2 space-y-1.5">
+                        @foreach ($disabledOccupiedPositions as $occupiedPosition)
+                            <li aria-disabled="true" class="flex cursor-not-allowed items-center justify-between rounded border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-400 opacity-70">
+                                <span>{{ $occupiedPosition }}</span>
+                                <span class="rounded bg-gray-200 px-2 py-0.5 text-[11px] font-semibold text-gray-500">Ocupada</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
             </div>
-        @endforeach
-    </dl>
+        @endif
+    </div>
 
     @if (!$compact)
         <section>

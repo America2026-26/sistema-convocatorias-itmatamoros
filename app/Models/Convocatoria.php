@@ -76,6 +76,25 @@ class Convocatoria extends Model
     }
 
     /**
+     * Obtiene las claves de plazas docentes ocupadas.
+     *
+     * @return list<string>
+     */
+    public function occupiedTeachingPositions(): array
+    {
+        $details = $this->detalles_especificos ?? [];
+        $occupied = [];
+
+        foreach ((array) ($details['plazas_ocupadas'] ?? []) as $code) {
+            if (is_string($code) && array_key_exists($code, self::TEACHING_POSITIONS)) {
+                $occupied[] = $code;
+            }
+        }
+
+        return array_values(array_unique($occupied));
+    }
+
+    /**
      * @return array<string, array{label: string, description: string}>
      */
     public function applicantDocumentRequirements(): array
