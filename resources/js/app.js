@@ -102,29 +102,59 @@ if (notificationsMenu) {
     }
 }
 
-const themeToggle = document.querySelector('[data-theme-toggle]');
+const THEME_STORAGE_KEY = 'itm-color-mode';
 
-if (themeToggle) {
-    const themeLabel = themeToggle.querySelector('[data-theme-label]');
-    const sunIcon = themeToggle.querySelector('[data-theme-sun]');
-    const moonIcon = themeToggle.querySelector('[data-theme-moon]');
+const syncThemeControls = (theme) => {
+    const normalized = theme === 'dark' ? 'dark' : 'light';
+    const isDark = normalized === 'dark';
 
-    const setTheme = (theme) => {
-        const isDark = theme === 'dark';
-        document.documentElement.dataset.theme = theme;
-        localStorage.setItem('itm-color-mode', theme);
-        themeToggle.setAttribute('aria-pressed', String(isDark));
-        themeLabel.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
-        sunIcon.classList.toggle('hidden', !isDark);
-        moonIcon.classList.toggle('hidden', isDark);
-    };
+    document.documentElement.dataset.theme = normalized;
 
-    setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+    document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
+        toggle.setAttribute('aria-pressed', String(isDark));
 
-    themeToggle.addEventListener('click', () => {
-        setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+        const themeLabel = toggle.querySelector('[data-theme-label]');
+        const themeBadge = toggle.querySelector('[data-theme-badge]');
+        const sunIcon = toggle.querySelector('[data-theme-sun]');
+        const moonIcon = toggle.querySelector('[data-theme-moon]');
+
+        if (themeLabel) {
+            themeLabel.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+        }
+
+        if (themeBadge) {
+            themeBadge.textContent = isDark ? 'Activo' : 'Desactivado';
+        }
+
+        sunIcon?.classList.toggle('hidden', !isDark);
+        moonIcon?.classList.toggle('hidden', isDark);
     });
-}
+};
+
+const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+const initialTheme = savedTheme === 'dark' || savedTheme === 'light'
+    ? savedTheme
+    : (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+
+syncThemeControls(initialTheme);
+
+document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) {
+        return;
+    }
+
+    const toggle = event.target.closest('[data-theme-toggle]');
+    if (!toggle) {
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    syncThemeControls(nextTheme);
+});
 
 document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
     const inputId = toggle.getAttribute('aria-controls');

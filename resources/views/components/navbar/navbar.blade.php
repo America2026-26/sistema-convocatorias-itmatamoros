@@ -132,7 +132,7 @@
                                 {{ auth()->user()->name }}
                             </span>
                             <span class="shrink-0 rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold text-white">
-                                Plaza {{ auth()->user()->plaza_jornada ?? 'N/A'  }}
+                                Plaza {{ auth()->user()->plaza_jornada ?? 'N/A' }}
                             </span>
                         </div>
                     @endif
@@ -191,17 +191,6 @@
                                 Mi perfil
                             </a>
 
-                            <!-- Enlace activo: Estado de Expediente Digital -->
-                            <!-- <a href="{{ route('expediente.estado') }}"
-                                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-gray-50">
-                                        <svg class="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z" />
-                                        </svg>
-                                        Estado de Expediente
-                                    </a> -->
-
-                            <!-- Enlace activo: Calendario Institucional / Fechas Clave -->
                             <a href="{{ route('calendario.institucional') }}"
                                 class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-gray-50">
                                 <svg class="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -212,20 +201,7 @@
                                 Calendario Institucional
                             </a>
 
-                            <!-- <a href="{{ route('profile.settings') }}"
-                                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition hover:bg-gray-50">
-                                        <svg class="h-5 w-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                                d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm0-6v2m0 16v2m10-10h-2M4 12H2m17.07-7.07-1.42 1.42M6.35 17.65l-1.42 1.42m14.14 0-1.42-1.42M6.35 6.35 4.93 4.93" />
-                                        </svg>
-                                        Configuración
-                                        <span class="ml-auto text-[10px] text-gray-500">Próximamente</span>
-                                    </a> -->
-                            <!-- 
-                                    <button type="button" data-theme-toggle aria-pressed="false"
-                                        class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-gray-50"></button> -->
-
-                            <button type="button"
+                            <button type="button" data-theme-toggle aria-pressed="false"
                                 class="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition hover:bg-gray-50">
                                 <svg data-theme-sun class="hidden h-5 w-5 text-amber-500" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" aria-hidden="true">
@@ -239,7 +215,7 @@
                                         d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z" />
                                 </svg>
                                 <span data-theme-label>Modo oscuro</span>
-                                <span class="ml-auto text-[10px] text-gray-500">Próximamente</span>
+                                <span data-theme-badge class="ml-auto text-[10px] text-gray-500">Desactivado</span>
                             </button>
                         </div>
                         <div class="border-t border-gray-100 px-2 pt-2">

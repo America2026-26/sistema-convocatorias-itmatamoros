@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="light">
+<html lang="es">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Sistema de Convocatorias ITM')</title>
     <script>
-        document.documentElement.dataset.theme = localStorage.getItem('itm-color-mode') === 'dark' ? 'dark' : 'light';
+        (function () {
+            const savedTheme = localStorage.getItem('itm-color-mode');
+            const theme = savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : 'light';
+            document.documentElement.dataset.theme = theme;
+        })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>

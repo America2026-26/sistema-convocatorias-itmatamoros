@@ -124,6 +124,11 @@ body {
     position: relative;
 }
 
+html[data-theme='dark'] body {
+    background-color: #151d29;
+    color: #e0e6ee;
+}
+
 body::before {
     content: '';
     position: fixed;
@@ -139,7 +144,6 @@ body::before {
     background-image: url('https://dev.matamoros.tecnm.mx/tecnm_itm/sitio/drive/Logo_TecNM.png');
     background-repeat: no-repeat;
     background-position: left center;
-    /* background-size: cover; */
 
     opacity: 0.03;
 
